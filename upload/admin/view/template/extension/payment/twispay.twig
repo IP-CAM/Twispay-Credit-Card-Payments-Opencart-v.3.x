@@ -1,0 +1,139 @@
+{{ header }}{{ column_left }}
+<div id="content">
+    <div class="page-header">
+        <div class="container-fluid">
+            <div class="pull-right">
+                <button type="submit" form="form-payment-twispay" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>
+                <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i class="fa fa-reply"></i></a>
+                <a href="{{ logs }}" data-toggle="tooltip" title="{{ text_logs }}" class="btn btn-info"><i class="fa fa-search"></i></a>
+            </div>
+            <h1>{{ heading_title }}</h1>
+            <ul class="breadcrumb">
+                {% for breadcrumb in breadcrumbs %}
+                    <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="container-fluid">
+        {% if error_warning %}
+            <div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+        {% endif %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-pencil"></i> {{ text_edit }}</h3>
+            </div>
+            <div class="panel-body">
+                <form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-payment-twispay" class="form-horizontal">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="payment_twispay_status">{{ entry_status }}</label>
+                        <div class="col-sm-5">
+                            <select name="payment_twispay_status" id="payment_twispay_status" class="form-control">
+                                    <option value="1" {% if payment_twispay_status %} selected="selected"{% endif %}>{{ text_enabled }}</option>
+                                    <option value="0" {% if not payment_twispay_status %} selected="selected"{% endif %}>{{ text_disabled }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="payment_twispay_testMode">{{ text_testMode }}</label>
+                        <div class="col-sm-5">
+                            <select name="payment_twispay_testMode" id="payment_twispay_testMode" class="form-control">
+                                <option value="1" {% if payment_twispay_testMode %} selected="selected"{% endif %}>{{ text_yes }}</option>
+                              <option value="0" {% if not payment_twispay_testMode %} selected="selected"{% endif %}>{{ text_no }}</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-5">
+                            {{ desc_testMode }}
+                        </div>
+                    </div>
+                    <div class="form-group tw-live" {% if payment_twispay_testMode %} style="display:none;"{% endif %}>
+                        <label class="col-sm-2 control-label" for="payment_twispay_live_site_id">{{ text_live_site_id }}</label>
+                        <div class="col-sm-5">
+                            <input type="text" name="payment_twispay_live_site_id" id="payment_twispay_live_site_id" class="form-control" value="{{ payment_twispay_live_site_id }}"/>
+
+                        </div>
+                        <div class="col-sm-5 tw-pd">
+                            {{ desc_live_site_id }}
+                        </div>
+                    </div>
+                    <div class="form-group tw-live" {% if payment_twispay_testMode %} style="display:none;"{% endif %}>
+                        <label class="col-sm-2 control-label" for="payment_twispay_live_site_key">{{ text_live_site_key }}</label>
+                        <div class="col-sm-5">
+                            <input type="password" name="payment_twispay_live_site_key" id="payment_twispay_live_site_key" class="form-control" value="{{ payment_twispay_live_site_key }}"/>
+
+                        </div>
+                        <div class="col-sm-5 tw-pd">
+                            {{ desc_live_site_key }}
+                        </div>
+                    </div>
+                    <div class="form-group tw-stage" {% if not payment_twispay_testMode %} style="display:none;"{% endif %}>
+                        <label class="col-sm-2 control-label" for="payment_twispay_staging_site_id">{{ text_staging_site_id }}</label>
+                        <div class="col-sm-5">
+                            <input type="text" name="payment_twispay_staging_site_id" id="payment_twispay_staging_site_id" class="form-control" value="{{ payment_twispay_staging_site_id }}"/>
+
+                        </div>
+                        <div class="col-sm-5 tw-pd">
+                            {{ desc_staging_site_id }}
+                        </div>
+                    </div>
+                    <div class="form-group tw-stage" {% if not payment_twispay_testMode %} style="display:none;"{% endif %}>
+                        <label class="col-sm-2 control-label" for="payment_twispay_staging_site_key">{{ text_staging_site_key }}</label>
+                        <div class="col-sm-5">
+                            <input type="password" name="payment_twispay_staging_site_key" id="payment_twispay_staging_site_key" class="form-control" value="{{ payment_twispay_staging_site_key }}"/>
+
+                        </div>
+                        <div class="col-sm-5 tw-pd">
+                            {{ desc_staging_site_key }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="payment_twispay_s_t_s_notification">{{ text_s_t_s_notification }}</label>
+                        <div class="col-sm-5">
+                            <input type="text" readonly="readonly" name="payment_twispay_s_t_s_notification" id="payment_twispay_s_t_s_notification" class="form-control" value="{{ payment_twispay_s_t_s_notification }}" />
+
+                        </div>
+                        <div class="col-sm-5 tw-pd">
+                            {{ desc_s_t_s_notification }}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-contact-email">{{ text_contact_email }}</label>
+                        <div class="col-sm-5">
+                            <input type="text" name="payment_twispay_contact_email" value="{{ payment_twispay_contact_email }}" placeholder="{{ payment_twispay_contact_email }}" id="input-contact-email" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-sort-order">{{ entry_sort_order }}</label>
+                        <div class="col-sm-5">
+                            <input type="text" name="payment_twispay_sort_order" value="{{ payment_twispay_sort_order }}" id="input-sort-order" class="form-control" />
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="payment_twispay_logs" id="payment_twispay_logs" class="form-control" value="{{ payment_twispay_logs }}" />
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).on('change','#payment_twispay_testMode', function(){
+        mode = $(this).val();
+        if(mode == '1'){
+            $('.tw-stage').css('display','block');
+            $('.tw-live').css('display','none');
+        } else {
+            $('.tw-stage').css('display','none');
+            $('.tw-live').css('display','block');
+        }
+
+    });
+</script>
+<style>
+    .green{
+        color: #3ad900;
+    }
+</style>
+
+{{footer}}
