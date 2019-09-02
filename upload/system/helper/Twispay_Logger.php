@@ -33,7 +33,7 @@ if (! class_exists('Twispay_Logger')) :
         }
 
         /**
-         * Function that logs a message to the transaction refund log file.
+         * Function that logs a message to the requests log file.
          *
          * @param string - Message to log to file.
          *

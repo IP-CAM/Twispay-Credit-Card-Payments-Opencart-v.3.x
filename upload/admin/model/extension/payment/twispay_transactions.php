@@ -4,7 +4,8 @@
  * @version  1.0.0
  */
 
-class ModelExtensionPaymentTwispayTransactions extends Model {
+class ModelExtensionPaymentTwispayTransactions extends Model
+{
     /**
      * Function that create the database twispay_transactions table.
      *
@@ -13,7 +14,7 @@ class ModelExtensionPaymentTwispayTransactions extends Model {
      */
     public function createTransactionTable()
     {
-      $sql = "
+        $sql = "
           CREATE TABLE IF NOT EXISTS `". DB_PREFIX ."twispay_transactions` (
               `id_transaction` int(11) NOT NULL AUTO_INCREMENT,
               `status` varchar(16) NOT NULL,
@@ -46,7 +47,7 @@ class ModelExtensionPaymentTwispayTransactions extends Model {
     }
 
     /**
-     * Function that get the database transactions
+     * Function that return the database transactions
      *
      * @param string user        - User id filter
      * @param string status      - Status filter
@@ -64,35 +65,35 @@ class ModelExtensionPaymentTwispayTransactions extends Model {
         $db_sort_order = $this->db->escape($sort_order);
 
         $where = "";
-        if(!empty($db_user)){
-          if(strlen($where)){
-            $where .=" AND ";
-          }else{
-            $where .=" WHERE ";
-          }
-          $where .= "`identifier`='".$db_user."'";
+        if (!empty($db_user)) {
+            if (strlen($where)) {
+                $where .=" AND ";
+            } else {
+                $where .=" WHERE ";
+            }
+            $where .= "`identifier`='".$db_user."'";
         }
 
-        if(!empty($db_status)){
-          if(strlen($where)){
-            $where .=" AND ";
-          }else{
-            $where .=" WHERE ";
-          }
-          $where .="`status` LIKE '".$db_status."'";
+        if (!empty($db_status)) {
+            if (strlen($where)) {
+                $where .=" AND ";
+            } else {
+                $where .=" WHERE ";
+            }
+            $where .="`status` LIKE '".$db_status."'";
         }
 
         $order = "ORDER BY `date` DESC";
-        if($db_sort_col && $db_sort_order){
-          $order = "ORDER BY `".$db_sort_col."` ".$db_sort_order."";
+        if ($db_sort_col && $db_sort_order) {
+            $order = "ORDER BY `".$db_sort_col."` ".$db_sort_order."";
         }
 
         $query = "SELECT t.*,s.`store_id` FROM `" . DB_PREFIX . "twispay_transactions` as t LEFT JOIN `".DB_PREFIX."order` AS s ON t.`order_id`=s.`order_id` ".$where.' '.$order;
         $data = $this->db->query($query);
 
         $trans = array();
-        if($data->num_rows){
-            foreach($data->rows as $dt){
+        if ($data->num_rows) {
+            foreach ($data->rows as $dt) {
                 array_push($trans, $dt);
             }
         }
@@ -105,12 +106,13 @@ class ModelExtensionPaymentTwispayTransactions extends Model {
      * @return array - Array of columns
      *
      */
-    public function getTransactionColsName(){
+    public function getTransactionColsName()
+    {
         $query = "SHOW COLUMNS FROM `" . DB_PREFIX . "twispay_transactions`";
         $data = $this->db->query($query);
         $cols = array();
-        if($data->num_rows){
-            foreach($data->rows as $dt){
+        if ($data->num_rows) {
+            foreach ($data->rows as $dt) {
                 array_push($cols, $dt);
             }
         }
@@ -123,12 +125,13 @@ class ModelExtensionPaymentTwispayTransactions extends Model {
      * @return array - Array of customers
      *
      */
-    public function getCustomers(){
+    public function getCustomers()
+    {
         $query = "SELECT `customer_id`,(CONCAT_WS(' ',`firstname`,`lastname`)) AS name,`email` FROM `" . DB_PREFIX . "customer`";
         $data = $this->db->query($query);
         $customers = array();
-        if($data->num_rows){
-            foreach($data->rows as $dt){
+        if ($data->num_rows) {
+            foreach ($data->rows as $dt) {
                 array_push($customers, $dt);
             }
         }
@@ -141,12 +144,13 @@ class ModelExtensionPaymentTwispayTransactions extends Model {
      * @return array - Array of statuses
      *
      */
-    public function getStatuses(){
+    public function getStatuses()
+    {
         $query = "SELECT DISTINCT `status` FROM `" . DB_PREFIX . "twispay_transactions` ORDER BY `status` ASC";
         $data = $this->db->query($query);
         $statuses = array();
-        if($data->num_rows){
-            foreach($data->rows as $dt){
+        if ($data->num_rows) {
+            foreach ($data->rows as $dt) {
                 array_push($statuses, $dt);
             }
         }
@@ -160,12 +164,14 @@ class ModelExtensionPaymentTwispayTransactions extends Model {
      *                - NULL
      *
      */
-    public function getOrderStatusId($order_id){
-        $query = $this->db->query("SELECT `order_id`,`order_status_id` FROM `" . DB_PREFIX . "order` WHERE `order_id` = '".$order_id."'");
-        if($query->num_rows){
-           return $query->row['order_status_id'];
-        }else{
-          return null;
+    public function getOrderStatusId($order_id)
+    {
+        $db_order_id = $this->db->escape($order_id);
+        $query = $this->db->query("SELECT `order_status_id` FROM `" . DB_PREFIX . "order` WHERE `order_id` = '".$db_order_id."'");
+        if ($query->num_rows) {
+            return $query->row['order_status_id'];
+        } else {
+            return NULL;
         }
     }
 
@@ -174,16 +180,17 @@ class ModelExtensionPaymentTwispayTransactions extends Model {
      *
      * @param string order_id - The id of the order to be checked
      *
-     * @return boolean - TRUE / FALSE
+     * @return boolean - TRUE | FALSE
      *
      */
-    public function isRecurring($order_id) {
-       $db_order_id = $this->db->escape($order_id);
-       $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order_recurring` WHERE `order_id` = '".(int)$db_order_id . "'");
-        if($query->num_rows){
-          return TRUE;
-        }else{
-          return FALSE;
+    public function isRecurring($order_id)
+    {
+        $db_order_id = $this->db->escape($order_id);
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order_recurring` WHERE `order_id` = '".(int)$db_order_id . "'");
+        if ($query->num_rows) {
+            return TRUE;
+        } else {
+            return false;
         }
-     }
+    }
 }

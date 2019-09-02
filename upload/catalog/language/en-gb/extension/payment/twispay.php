@@ -17,6 +17,7 @@ $_['comunication_error']                        = 'Comunications Error: ';
 $_['validation_error']                          = 'Validation error';
 $_['processing']                                = 'Processing ...';
 $_['error_permission']                          = 'Permission denied';
+$_['json_decode_error']                         = 'Json decode error';
 $_['no_post']                                   = '[RESPONSE-ERROR]: no_post';
 
 $_['general_error_title']                       = 'An error occurred:';
@@ -26,11 +27,12 @@ $_['general_error_desc_or']                     = ' or';
 $_['general_error_desc_contact']                = ' contact';
 $_['general_error_desc_s']                      = ' the website administrator.';
 $_['general_error_hold_notice']                 = ' Payment is on hold.';
+$_['general_error_invalid_order']               = ' Invalid order.';
 
 /* Checkout validation */
 $_['checkout_error_too_many_prods']             = 'In case of recurring products, the order must contain only one subscription at a time.';
 $_['checkout_notice_free_trial']                = 'Free trial is not suported by payment processor.';
-$_['checkout_notice_cycles_number']             = 'Trial period can only have one cycle and therefore only one payment. If multiple trial cycles are configured, the periods and payments will be summed up and only one payment will be performed.';
+$_['checkout_notice_cycles_number']             = 'Trial period can only have one payment. If multiple trial duration is configured, the periods and payments will be summed up and only one payment will be performed.';
 
 /* Order Notice */
 $_['a_order_failed_notice']                     = 'Twispay payment failed';
@@ -41,7 +43,6 @@ $_['a_order_refunded_notice']                   = 'Twispay payment was refunded 
 $_['a_order_refunded_requested_notice']         = 'Twispay refund requested';
 $_['a_order_paid_notice']                       = 'Paid Twispay #';
 $_['a_order_canceled_notice']                   = 'Twispay payment was canceled';
-
 
 /* LOG insertor */
 $_['log_refund_response']                       = '[RESPONSE]: Refund operation data: ';

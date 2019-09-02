@@ -17,20 +17,22 @@ $_['comunication_error']                        = 'A intervenit o eroare de comu
 $_['validation_error']                          = 'A intervenit o eroare de validare';
 $_['processing']                                = 'Se procesează ...';
 $_['error_permission']                          = 'Acces refuzat';
+$_['json_decode_error']                         = 'Eroare la decodarea obiectului json';
 $_['no_post']                                   = '[RESPONSE-ERROR]: lipsă POST';
 
-$_['general_error_title']                       = 'S-a petrecut o eroare:';
+$_['general_error_title']                       = 'A aparut o eroare:';
 $_['general_error_desc_f']                      = 'Plata nu a putut fi procesată. Te rog reincearcă.';
 $_['general_error_desc_try_again']              = ' încearcă din nou';
 $_['general_error_desc_or']                     = ' sau';
 $_['general_error_desc_contact']                = ' contactează';
 $_['general_error_desc_s']                      = ' administratorul site-ului.';
 $_['general_error_hold_notice']                 = ' Plata este in așteptare.';
+$_['general_error_invalid_order']               = ' Datele comenzii sunt invalide.';
 
 /* Checkout validation */
-$_['checkout_error_too_many_prods']             = 'în cazul produselor recurente, comanda trebuie să conțină doar un singur abonament.';
+$_['checkout_error_too_many_prods']             = 'În cazul produselor recurente, comanda trebuie să conțină doar un singur abonament.';
 $_['checkout_notice_free_trial']                = 'Perioada de încercare gratuită nu este suportată.';
-$_['checkout_notice_cycles_number']             = 'Periada de de încercare poate avea un singur ciclu și prin urmare o singură plată. În cazul în care numărul de cicluri este mai mare de unu, perioada și valoarea de încercare vor fi însumate și procesate într-o singură plată.';
+$_['checkout_notice_cycles_number']             = 'Plata perioadei de încercare poate fi efectuată o singură dată. În cazul în care durata este mai mare de unu, perioada și valoarea de încercare vor fi însumate și procesate într-o singură plată.';
 
 /* Order Notice */
 $_['a_order_failed_notice']                     = 'Plata Twispay a fost finalizată cu eroare';

@@ -44,7 +44,6 @@ class ModelExtensionPaymentTwispayRecurring extends Model
 
         $query = rtrim($query, ',');
         $this->db->query($query);
-        $affected_transactions = $this->db->countAffected();
         return $query;
     }
 
@@ -55,7 +54,7 @@ class ModelExtensionPaymentTwispayRecurring extends Model
      * @param integer status  - The status id of the transaction to be updated
      *
      * @return array([key => value]) - string 'query'     - The query that was called
-                                       integer 'affected' - Number of affected rows
+     *                                 integer 'affected' - Number of affected rows
      *
      */
     public function updateRecurringTransaction($trans_id, $status)
@@ -78,97 +77,109 @@ class ModelExtensionPaymentTwispayRecurring extends Model
      * @param array([key => value]) data - Array of data to be populated
      * @param boolean overwrite          - Allow a record to be updated or not
      *
-     * @return {array|string} - Operation response
+     * @return {array|string} - Operation response | FALSE
      *
      */
     public function addRecurringTransaction($data, $overwrite = FALSE)
     {
         $data = json_decode(json_encode($data), TRUE);
+        if (!isset($data)) {
+            return FALSE;
+        }
         if (!isset($data['reference'])) {
             return FALSE;
         }
         $db_data_reference = $this->db->escape($data['reference']);
         $query = $this->db->query("SELECT * FROM`" . DB_PREFIX . "order_recurring_transaction` WHERE `reference` LIKE '" . $db_data_reference . "'");
         if ($query->num_rows > 0) {
-            if($overwrite){
-              $resp = $this->updateRecurringTransaction($data['reference'], $data['type']);
+            if ($overwrite) {
+                $resp = $this->updateRecurringTransaction($data['reference'], $data['type']);
             }
         } else {
             $resp = $this->insertRecurringTransaction($data);
         }
-        return json_encode($resp);
+        return $resp;
     }
 
-    public function getAllRecurrings($data) {
-  		$sql = "SELECT `or`.order_recurring_id, `or`.order_id, `or`.reference, `or`.`status`, `or`.`date_added`, CONCAT(`o`.firstname, ' ', `o`.lastname) AS customer FROM `" . DB_PREFIX . "order_recurring` `or` LEFT JOIN `" . DB_PREFIX . "order` `o` ON (`or`.order_id = `o`.order_id)";
+    /**
+     * Function that return a list with all recurring orders
+     *
+     * @param string data - query parameters
+     *
+     * @return array - All recurrings
+     *
+     */
+    public function getAllRecurrings($data)
+    {
+        $sql = "SELECT `or`.order_recurring_id, `or`.order_id, `or`.reference, `or`.`status`, `or`.`date_added`, CONCAT(`o`.firstname, ' ', `o`.lastname) AS customer FROM `" . DB_PREFIX . "order_recurring` `or` LEFT JOIN `" . DB_PREFIX . "order` `o` ON (`or`.order_id = `o`.order_id)";
 
-  		$implode = array();
+        $implode = array();
 
-  		if (!empty($data['filter_order_recurring_id'])) {
-  			$implode[] = "or.order_recurring_id = " . (int)$data['filter_order_recurring_id'];
-  		}
+        if (!empty($data['filter_order_recurring_id'])) {
+            $implode[] = "or.order_recurring_id = " . (int)$data['filter_order_recurring_id'];
+        }
 
-  		if (!empty($data['filter_order_id'])) {
-  			$implode[] = "or.order_id = " . (int)$data['filter_order_id'];
-  		}
+        if (!empty($data['filter_order_id'])) {
+            $implode[] = "or.order_id = " . (int)$data['filter_order_id'];
+        }
 
-  		if (!empty($data['filter_reference'])) {
-  			$implode[] = "or.reference LIKE '" . $this->db->escape($data['filter_reference']) . "%'";
-  		}
+        if (!empty($data['filter_reference'])) {
+            $implode[] = "or.reference LIKE '" . $this->db->escape($data['filter_reference']) . "%'";
+        }
 
-  		if (!empty($data['filter_customer'])) {
-  			$implode[] = "CONCAT(o.firstname, ' ', o.lastname) LIKE '" . $this->db->escape($data['filter_customer']) . "%'";
-  		}
+        if (!empty($data['filter_customer'])) {
+            $implode[] = "CONCAT(o.firstname, ' ', o.lastname) LIKE '" . $this->db->escape($data['filter_customer']) . "%'";
+        }
 
-  		if (!empty($data['filter_status'])) {
-  			$implode[] = "or.status = " . (int)$data['filter_status'];
-  		}
+        if (!empty($data['filter_status'])) {
+            $implode[] = "or.status = " . (int)$data['filter_status'];
+        }
 
-  		if (!empty($data['filter_date_added'])) {
-  			$implode[] = "DATE(or.date_added) = DATE('" . $this->db->escape($data['filter_date_added']) . "')";
-  		}
+        if (!empty($data['filter_date_added'])) {
+            $implode[] = "DATE(or.date_added) = DATE('" . $this->db->escape($data['filter_date_added']) . "')";
+        }
 
-  		if ($implode) {
-  			$sql .= " WHERE " . implode(" AND ", $implode);
-  		}
+        if ($implode) {
+            $sql .= " WHERE " . implode(" AND ", $implode);
+        }
 
-  		$sort_data = array(
-  			'or.order_recurring_id',
-  			'or.order_id',
-  			'or.reference',
-  			'customer',
-  			'or.status',
-  			'or.date_added'
-  		);
+        $sort_data = array(
+            'or.order_recurring_id',
+            'or.order_id',
+            'or.reference',
+            'customer',
+            'or.status',
+            'or.date_added'
+        );
 
-  		if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
-  			$sql .= " ORDER BY " . $data['sort'];
-  		} else {
-  			$sql .= " ORDER BY or.order_recurring_id";
-  		}
+        if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
+            $sql .= " ORDER BY " . $data['sort'];
+        } else {
+            $sql .= " ORDER BY or.order_recurring_id";
+        }
 
-  		if (isset($data['order']) && ($data['order'] == 'DESC')) {
-  			$sql .= " DESC";
-  		} else {
-  			$sql .= " ASC";
-  		}
+        if (isset($data['order']) && ($data['order'] == 'DESC')) {
+            $sql .= " DESC";
+        } else {
+            $sql .= " ASC";
+        }
 
-  		if (isset($data['start']) || isset($data['limit'])) {
-  			if ($data['start'] < 0) {
-  				$data['start'] = 0;
-  			}
+        if (isset($data['start']) || isset($data['limit'])) {
+            if ($data['start'] < 0) {
+                $data['start'] = 0;
+            }
 
-  			if ($data['limit'] < 1) {
-  				$data['limit'] = 20;
-  			}
+            if ($data['limit'] < 1) {
+                $data['limit'] = 20;
+            }
 
-  			$sql .= " LIMIT " . (int)$data['start'] . "," . (int)$data['limit'];
-  		}
+            $sql .= " LIMIT " . (int)$data['start'] . "," . (int)$data['limit'];
+        }
 
-  		$query = $this->db->query($sql);
+        $query = $this->db->query($sql);
 
-  		return $query->rows;
-  	}
+        return $query->rows;
+    }
 
     /**
      * Function that return the recurring order based on opencart order id.
@@ -212,7 +223,7 @@ class ModelExtensionPaymentTwispayRecurring extends Model
      * @return integer - Number of succesful transactions
      *
      */
-    public function getRecurringSuccessTransactions($order_recurring_id)
+    public function getTotalRecurringSuccessTransactions($order_recurring_id)
     {
         $db_order_recurring_id = $this->db->escape($order_recurring_id);
         $query = $this->db->query("SELECT `order_recurring_id` FROM `" . DB_PREFIX . "order_recurring_transaction` WHERE `order_recurring_id` = " . $db_order_recurring_id . " AND `type` = 1");
@@ -223,7 +234,7 @@ class ModelExtensionPaymentTwispayRecurring extends Model
      * Function that update the status of a recurring order.
      *
      * @param string order_recurring_id - The id of the recurring order
-     * @param integer order_recurring_id - The new status id of the recurring order
+     * @param integer status_id - The new status id of the recurring order
      *
      * @return void
      *
@@ -248,8 +259,8 @@ class ModelExtensionPaymentTwispayRecurring extends Model
     {
         $order_recurring_id = $order_recurring['order_recurring_id'];
         $trial_state = intval($order_recurring['trial']);
-        $transactions = intval($this->getRecurringSuccessTransactions($order_recurring_id));
-        //if number of successful transactions is lower then recurring duration + 1(the trial period)
+        $transactions = intval($this->getTotalRecurringSuccessTransactions($order_recurring_id));
+        /** if number of successful transactions is lower then recurring duration + 1(the trial period) */
         $duration = intval($this->getRecurringDuration($order_recurring_id)) + $trial_state;
         if ($transactions < $duration) {
             return FALSE;
@@ -265,23 +276,19 @@ class ModelExtensionPaymentTwispayRecurring extends Model
      * @param string tw_order_id - The twispay order id of the transaction to be canceled
      * @param string order_id - The local id of the order that needs to be canceled
      *
-     * @return array([key => value,]) - string 'status'          - API Message
-                                        string 'rawdata'         - Unprocessed response
-                                        string 'orderId'         - The twispay id of the canceled order
-                                        string 'externalOrderId' - The opencart id of the canceled order
-                                        boolean 'cenceled'       - Operation success indicator
-     *
+     * @return array([key => value]) - string 'status'          - API Message
+     *                                 string 'rawdata'         - Unprocessed response
+     *                                 string 'orderId'         - The twispay id of the canceled order
+     *                                 string 'externalOrderId' - The opencart id of the canceled order
+     *                                 boolean 'canceled'       - Operation success indicator
      */
-    public function cancelRecurring($tw_order_id, $order_id)
+    public function cancelRecurring($tw_order_id, $order_id, $type = 'Manual')
     {
         $this->load->helper('Twispay_Logger');
         $this->load->helper('Twispay_Status_Updater');
-        $this->load->model('checkout/order');
+        $postData = 'reason='.'customer-demand'.'&'.'message=' . $type .'cancel';
 
-        $order_recurring_id = $this->getRecurringByOrderId($order_id)['order_recurring_id'];
-        // $tw_order_id = '117433';
-        $testMode = $this->config->get('payment_twispay_testMode');
-        if (!empty($testMode)) {
+        if (!empty($this->config->get('payment_twispay_testMode'))) {
             $url = 'https://api-stage.twispay.com/order/' . $tw_order_id;
             $apiKey = $this->config->get('payment_twispay_staging_site_key');
         } else {
@@ -291,15 +298,23 @@ class ModelExtensionPaymentTwispayRecurring extends Model
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/json', 'Authorization: ' . $apiKey]);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['accept: application/json', 'Authorization: ' . $apiKey]);
-        $contents = curl_exec($ch);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        $response = curl_exec($ch);
         curl_close($ch);
-        $json = json_decode($contents);
+        $json = json_decode($response);
+
+        /** Check if decode / curl fails */
+        if (!isset($json)) {
+            $json = new stdClass();
+            $json->message = $this->language->get('json_decode_error');
+            Twispay_Logger::Twispay_api_log($this->language->get('json_decode_error'));
+        }
 
         if ($json->message == 'Success') {
             $data = array(
-                'status'          => 'cancel-ok',
+                'status'          => Twispay_Status_Updater::$RESULT_STATUSES['CANCEL_OK'],
                 'rawdata'         => $json,
                 'orderId'         => $tw_order_id,
                 'externalOrderId' => $order_id,
@@ -324,113 +339,93 @@ class ModelExtensionPaymentTwispayRecurring extends Model
      * Function that calls the GET operation via Twispay API and update the
      * local(opencart) regurring orders wich reference starts with "tw" based on the response.
      *
-     * @param string tw_order_id - The twispay order id of the transaction to be canceled
-     * @param string order_id - The local id of the order that needs to be canceled
      *
      * @return array([key => value,]) - string 'status'- API Message
-                                        int 'synced'   - Number of afected orders
+     *                                  int 'synced'   - Number of afected orders
      *
      */
     public function syncRecurrings()
     {
-        /* Load dependencies */
+        /** Load dependencies */
         $this->language->load('extension/payment/twispay');
         $this->load->helper('Twispay_Logger');
         $this->load->helper('Twispay_Status_Updater');
 
-        $testMode = $this->config->get('payment_twispay_testMode');
-        if (!empty($testMode)) {
+        if (!empty($this->config->get('payment_twispay_testMode'))) {
             $baseUrl = 'https://api-stage.twispay.com/order?externalOrderId=__EXTERNAL_ORDER_ID__&orderType=recurring&page=1&perPage=1&reverseSorting=0';
             $apiKey = $this->config->get('payment_twispay_staging_site_key');
         } else {
             $baseUrl = 'https://api.twispay.com/order?externalOrderId=__EXTERNAL_ORDER_ID__&orderType=recurring&page=1&perPage=1&reverseSorting=0';
             $apiKey = $this->config->get('payment_twispay_live_site_key');
         }
-        $filter_data = ['status' => 1];
-        $subscriptions = $this->getAllRecurrings($filter_data);
-
+        $subscriptions = $this->getAllRecurrings(['status' => 1]);
         $total_synced = 0;
         $error = array('message' => '','error' => 0);
         foreach ($subscriptions as $key => $subscription) {
-            if(!isset($subscription['reference'])){
-              continue;
+            if (!isset($subscription['reference'])) {
+                continue;
             }
             $subscription['reference'] = explode("_", $subscription['reference']);
             $prefix = $subscription['reference'][0];
-            if($prefix != 'tw'){
-              continue;
-            }else{
-              $subscription['reference'] = $subscription['reference'][1];
+            if ($prefix != 'tw') {
+                continue;
+            } else {
+                $subscription['reference'] = $subscription['reference'][1];
             }
-
-            /* Create a new cURL session. */
-            $ch = curl_init();
-            /* Construct the URL. */
+            /** Construct the URL. */
             $url = str_replace('__EXTERNAL_ORDER_ID__', $subscription['order_id'], $baseUrl);
-            /* Set the URL and other needed fields. */
+
+            /** Create a new cURL session. */
+            $ch = curl_init();
+            /** Set the URL and other needed fields. */
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
             curl_setopt($ch, CURLOPT_HEADER, FALSE);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['accept: application/json', 'Authorization: ' . $apiKey]);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/json', 'Authorization: ' . $apiKey]);
             $response = curl_exec($ch);
-
-            /* Check if the CURL call failed. */
-            if(FALSE === $response) {
-              Twispay_Logger::Twispay_api_log( $this->language->get('subscriptions_log_error_call_failed') . curl_error($ch));
-              curl_close($ch);
-              continue;
+            /** Check if the CURL call failed. */
+            if (false === $response) {
+                Twispay_Logger::Twispay_api_log($this->language->get('subscriptions_log_error_call_failed') . curl_error($ch));
+                curl_close($ch);
+                continue;
             }
 
-            if((200 != curl_getinfo($ch, CURLINFO_HTTP_CODE))){
-              Twispay_Logger::Twispay_api_log( $this->language->get('subscriptions_log_error_http_code') . curl_getinfo($ch, CURLINFO_HTTP_CODE));
-              curl_close($ch);
-              continue;
+            if ((200 != curl_getinfo($ch, CURLINFO_HTTP_CODE))) {
+                Twispay_Logger::Twispay_api_log($this->language->get('subscriptions_log_error_http_code') . curl_getinfo($ch, CURLINFO_HTTP_CODE));
+                curl_close($ch);
+                continue;
             }
             curl_close($ch);
             $json = json_decode($response, TRUE);
-
-            if(!isset($json)){
-              Twispay_Logger::Twispay_api_log( $this->language->get('subscriptions_log_error_order_not_found') . $subscription['order_id']);
-              $error = array('message' => $this->language->get('subscriptions_log_error_order_not_found'),'error' => 1);
-              break;
+            /** Check if decode fails */
+            if (!isset($json) || !sizeof($json['data'])) {
+                Twispay_Logger::Twispay_api_log($this->language->get('subscriptions_log_error_order_not_found') . $subscription['order_id']);
+                continue;
             }
-
-            if(!sizeof($json['data'])){
-              Twispay_Logger::Twispay_api_log( $this->language->get('subscriptions_log_error_order_not_found') . $subscription['order_id']);
-              $error = array('message' => $this->language->get('subscriptions_log_error_order_not_found'),'error' => 1);
-              continue;
-            }
-
-            if ( 'Success' == $json['message'] ) {
-              $update_data = $json['data'][0];
-              // normalize the response
-              $update_data['status'] =  $update_data['orderStatus'];
-              $update_data['orderId'] = $subscription['reference'];
-              /* Cancel the local recurring */
-              Twispay_Status_Updater::updateStatus_IPN($subscription['order_id'], $update_data, $this);
-              Twispay_Logger::Twispay_api_log( $this->language->get('subscriptions_log_ok_set_status') . $subscription['order_id']);
-              $total_synced += 1;
+            if ('Success' == $json['message']) {
+                $update_data = $json['data'][0];
+                /** normalize the response */
+                $update_data['status'] =  $update_data['orderStatus'];
+                $update_data['orderId'] = $subscription['reference'];
+                /** Cancel the local recurring */
+                Twispay_Status_Updater::updateStatus_IPN($subscription['order_id'], $update_data, $this);
+                Twispay_Logger::Twispay_api_log($this->language->get('subscriptions_log_ok_set_status') . $subscription['order_id']);
+                $total_synced += 1;
             } else {
-              $error = array('message' => $this->language->get('subscriptions_log_error_get_status'),'error' => 1);
-              Twispay_Logger::Twispay_api_log( $this->language->get('subscriptions_log_error_get_status') . $subscription['order_id']);
-              break;
+                Twispay_Logger::Twispay_api_log($this->language->get('subscriptions_log_error_get_status') . $subscription['order_id']);
+                continue;
             }
         }
-        if($total_synced == 0 && $error['error'] == 0){
-          $error = array('message' => $this->language->get('subscriptions_log_error_no_orders_found'),'error' => 2);
+        if ($total_synced == 0 && $error['error'] == 0) {
+            $error = array('message' => $this->language->get('subscriptions_log_error_no_orders_found'),'error' => 1);
         }
-        if($error['error'] == 0){
-          $data = array(
+        if ($error['error'] == 0) {
+            $data = array(
               'status' => 'Success',
               'synced' => $total_synced,
           );
-        }else if($error['error'] == 1){
-          $data = array(
-              'status' => $error['message'],
-              'synced' => -1,
-          );
-        }else if($error['error'] == 2){
-          $data = array(
+        } elseif ($error['error'] == 1) {
+            $data = array(
               'status' => $error['message'],
               'synced' => 0,
           );

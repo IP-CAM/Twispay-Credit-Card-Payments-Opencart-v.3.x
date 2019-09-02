@@ -93,9 +93,9 @@
                                 <td>{{ tran['amount'] }}</td>
                                 <td>{{ tran['currency'] }}</td>
                                 <td>{{ tran['date'] }}</td>
-                                <td>{% if tran['status']=='refund-ok' %}{{ tran['refund_date'] }}{% endif %}</td>
-                                <td>{% if tran['status']=='complete-ok' %}<i class="refund fa fa-undo red" aria-hidden="TRUE" data-transid="{{ tran['transactionId'] }}" data-orderid="{{ tran['order_id'] }}" data-store="{{ tran['store_id'] }}"></i>{% endif %}</td>
-                                <td>{% if tran['order_status'] == '2' and tran['is_recurring'] == 1 %}<i class="cancel_subscription fa fa-times red" aria-hidden="TRUE" data-tworderid="{{ tran['orderId'] }}" data-orderid="{{ tran['order_id'] }}" data-store="{{ tran['store_id'] }}"></i>{% endif %}</td>
+                                <td>{% if tran['status'] == status_refund_ok %}{{ tran['refund_date'] }}{% endif %}</td>
+                                <td>{% if tran['status'] == status_complete_ok %}<i class="refund fa fa-undo red" aria-hidden="TRUE" data-transid="{{ tran['transactionId'] }}" data-orderid="{{ tran['order_id'] }}" data-store="{{ tran['store_id'] }}"></i>{% endif %}</td>
+                                <td>{% if tran['order_status'] == order_status_processing_id and tran['is_recurring'] == 1 %}<i class="cancel_subscription fa fa-times red" aria-hidden="TRUE" data-tworderid="{{ tran['orderId'] }}" data-orderid="{{ tran['order_id'] }}" data-store="{{ tran['store_id'] }}"></i>{% endif %}</td>
                             </tr>
                     {% endfor %}
                         </tbody>
@@ -109,7 +109,8 @@
 </div>
 
 <script type="text/javascript">
-  // SORT START
+  /** SORT START */
+  /** Change listener for filters - customer selector */
   $(document).on('change', 'select.trans-customers', function() {
     var f_uid_val = $(this).val();
     var uri = updateQueryStringParameter(window.location.href, "f_uid", f_uid_val);
@@ -117,16 +118,21 @@
     window.location.href = uri;
   });
 
+  /** Change listener for filters - status selector */
   $(document).on('change', 'select.trans-status', function() {
     var f_status_val = $(this).val();
     window.location.href = updateQueryStringParameter(window.location.href, "f_status", f_status_val);
   });
 
+  /** Read sort parameter from GET and set the buttons state */
   $(function() {
     var GET_sort = $.urlParam('sort');
     var GET_sort_order = "";
     var GET_sort_field = "";
     var current_sort_th = "";
+    /** Parse sort value.
+     *  correct: sort = field-name_sort-order
+     */
     if (GET_sort) {
       GET_sort_order = GET_sort.split("_")[1];
       GET_sort_field = GET_sort.split("_")[0];
@@ -142,7 +148,9 @@
     }
   })
 
+  /** Write sort parameter to GET and set the buttons state */
   $('th.sortable').click(function() {
+    /** Read from uri*/
     var GET_sort = $.urlParam('sort');
     var GET_sort_order = "";
     var GET_sort_field = "";
@@ -150,38 +158,46 @@
       GET_sort_order = GET_sort.split("_")[1];
       GET_sort_field = GET_sort.split("_")[0];
     }
+    /** Update the values*/
     var current_name = $(this).attr("data-val");
     if (current_name == GET_sort_field && GET_sort_order == "ASC") {
       current_order = "DESC";
     } else {
       current_order = "ASC";
     }
+    /** Reload the page with the new value for sort parameter */
     window.location.href = updateQueryStringParameter(window.location.href, "sort", current_name + '_' + current_order);
   })
-  // SORT STOP
+  /** SORT STOP */
 
-  // REFUND
+  /** REFUND START */
+  /** Click listener for refund button */
   $(document).on('click', 'i.refund', function() {
+    /** Read button attributes */
     var transid = $(this).attr('data-transid');
     var orderid = $(this).attr('data-orderid');
     var parent = $(this).parents('tr');
     var token = "{{ token }}";
     $(parent).css('opacity', '0.5');
-
+    /** Endpoint URL + GET parameters */
     var refund ='{{ catalog }}index.php?route=api/twispay/refund&api_token={{ api_token }}&trans_id=' + transid + '&order_id=' + orderid;
     setTimeout(function() {
+      /** user confirmation popup */
       if (window.confirm("Are you sure you want to refund transaction #" + transid + " ?\nProcess is not reversible !!!")) {
         $.ajax({
           url: refund,
           success: function(data) {
             $(parent).css('opacity', '1');
+            /** if ajax call succeeded */
             if (typeof data.success != 'undefined') {
               alert('Successfuly refunded !');
               window.location.reload();
             } else {
+              /** if ajax call failed */
               alert(data.error);
             }
           },
+          /** if ajax call failed */
           error: function(xhr, ajaxOptions, thrownError) {
             $(parent).css('opacity', '1');
             alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
@@ -192,30 +208,36 @@
       }
     }, 50);
   });
+  /** REFUND STOP */
 
-  // CANCEL
+  /** CANCEL START */
+  /** Click listener for cancel button */
   $(document).on('click', 'i.cancel_subscription', function() {
+    /** Read button attributes */
     var orderid = $(this).attr('data-orderid');
     var tworderid = $(this).attr('data-tworderid');
     var parent = $(this).parents('tr');
     var token = "{{ token }}";
-
     $(parent).css('opacity', '0.5');
-
+    /** Endpoint URL + GET parameters */
     var cancel ='{{ catalog }}index.php?route=api/twispay/cancel&api_token={{ api_token }}&tw_order_id=' + tworderid + '&order_id=' + orderid;
     setTimeout(function() {
+      /** user confirmation popup */
       if (window.confirm("Are you sure you want to cancel order #" + orderid + " ?\n")) {
         $.ajax({
           url: cancel,
           success: function(data) {
             $(parent).css('opacity', '1');
+            /** if ajax call succeeded */
             if (typeof data.success != 'undefined') {
               alert('Successfuly canceled !');
               window.location.reload();
+            /** if ajax call failed */
             } else {
               alert(data.error);
             }
           },
+          /** if ajax call failed */
           error: function(xhr, ajaxOptions, thrownError) {
             $(parent).css('opacity', '1');
             alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
@@ -226,15 +248,20 @@
       }
     }, 50);
   });
+  /** CANCEL STOP */
 
-  // SYNC
+  /** SYNC ALL RECURRINGS START */
+  /** Click listener for sync all button */
   $(document).on('click', '.sync_subscriptions', function() {
+    /** Endpoint URL */
     var sync ='{{ catalog }}index.php?route=api/twispay/sync&api_token={{ api_token }}';
+    /** Preload the button */
     buttonLoadingState($('.sync_subscriptions'));
     setTimeout(function() {
       $.ajax({
         url: sync,
         success: function(data) {
+          /** if ajax call succeeded */
           if (typeof data.success != 'undefined') {
             alert('Successful synced! - '+ data.synced + ' orders');
             window.location.reload();
@@ -243,6 +270,7 @@
           }
           buttonDefaultState($('.sync_subscriptions'));
         },
+        /** if ajax call failed */
         error: function(xhr, ajaxOptions, thrownError) {
           alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
           buttonDefaultState($('.sync_subscriptions'));
@@ -250,20 +278,36 @@
       });
     }, 50);
   });
+  /** SYNC ALL RECURRINGS STOP */
 
-  // HELPERS
+  /** Helper functions
+   * Set the loading state for button
+   *
+   * @param button - jQuery selector for button element
+   */
   function buttonLoadingState(button){
     button.attr('disabled','disabled').addClass('disabled');
     button.find('.i-loading').removeClass('d-none');
     button.find('.i-default').addClass('d-none');
   }
-
+  /** Set the normal state for button
+   *
+   * @param button - jQuery selector for button element
+   */
   function buttonDefaultState(button){
     button.removeAttr("disabled").removeClass('disabled');
     button.find('.i-loading').addClass('d-none');
     button.find('.i-default').removeClass('d-none');
   }
 
+  /** Add a GET parameter into a URI string or update it if already exists
+   *
+   * @param string uri - jQuery selector for button element
+   *        string key - GET parameter key
+   *        string value - GET parameter value
+   *
+   * @return string - the new uri address
+   */
   function updateQueryStringParameter(uri, key, value) {
     var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
     var separator = uri.indexOf('?') !== -1
@@ -275,14 +319,21 @@
       return uri + separator + key + "=" + value;
     }
   }
-  $.urlParam = function(name) {
-    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+  /** Read the GET parameter value by key
+   *
+   * @param string key - the key of the element to be returned
+   *
+   * @return string - the element value
+   */
+  $.urlParam = function(key) {
+    var results = new RegExp('[\?&]' + key + '=([^&#]*)').exec(window.location.href);
     if (results == null) {
       return null;
     }
     return decodeURI(results[1]) || 0;
   }
 </script>
+
 <style>
     .big-border{
         border-right: 4px solid #a7a7a7;
@@ -332,4 +383,5 @@
       display: none;
     }
 </style>
+
 {{footer}}

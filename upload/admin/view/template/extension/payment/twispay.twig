@@ -99,15 +99,15 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-sm-2 control-label" for="input-contact-email">{{ text_contact_email }}</label>
+                        <label class="col-sm-2 control-label" for="payment_twispay_contact_email">{{ text_contact_email }}</label>
                         <div class="col-sm-5">
-                            <input type="text" name="payment_twispay_contact_email" value="{{ payment_twispay_contact_email }}" placeholder="{{ payment_twispay_contact_email }}" id="input-contact-email" class="form-control" />
+                            <input type="text" name="payment_twispay_contact_email" value="{{ payment_twispay_contact_email }}" placeholder="{{ payment_twispay_contact_email }}" id="payment_twispay_contact_email" class="form-control" />
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-sm-2 control-label" for="input-sort-order">{{ entry_sort_order }}</label>
+                        <label class="col-sm-2 control-label" for="payment_twispay_sort_order">{{ entry_sort_order }}</label>
                         <div class="col-sm-5">
-                            <input type="text" name="payment_twispay_sort_order" value="{{ payment_twispay_sort_order }}" id="input-sort-order" class="form-control" />
+                            <input type="text" name="payment_twispay_sort_order" value="{{ payment_twispay_sort_order }}" id="payment_twispay_sort_order" class="form-control" />
                         </div>
                     </div>
 
@@ -117,7 +117,9 @@
         </div>
     </div>
 </div>
+
 <script type="text/javascript">
+    /** Show/Hide stage and live fields based on selected value of the "#payment_twispay_testMode" selectbox*/
     $(document).on('change','#payment_twispay_testMode', function(){
         mode = $(this).val();
         if(mode == '1'){
@@ -127,13 +129,7 @@
             $('.tw-stage').css('display','none');
             $('.tw-live').css('display','block');
         }
-
     });
 </script>
-<style>
-    .green{
-        color: #3ad900;
-    }
-</style>
 
 {{footer}}

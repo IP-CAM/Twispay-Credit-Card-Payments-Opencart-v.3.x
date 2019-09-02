@@ -14,12 +14,18 @@ class ModelExtensionPaymentTwispayTransaction extends Model
      *
      * @param array([key => value]) data - Array of data to be populated
      *
-     * @return string - The query that was called
+     * @return string - The query that was called | FALSE
      *
      */
     public function insertTransaction($data)
     {
+        $this->load->helper('Twispay_Status_Updater');
         $data =json_decode(json_encode($data), TRUE);
+        if (!isset($data)) {
+            return FALSE;
+        }
+
+        /** Define filtred keys */
         $columns = array(
           'order_id',
           'status',
@@ -34,12 +40,16 @@ class ModelExtensionPaymentTwispayTransaction extends Model
           'currency',
           'date',
         );
+        /** Convert $data object form to local form defined in columns array */
         $data['order_id'] = $data['externalOrderId'];
-        if ($data['status'] == "refund-ok") {
+        /** If refund succeeded*/
+        if ($data['status'] == Twispay_Status_Updater::$RESULT_STATUSES['REFUND_OK']) {
+            /** Set refund date */
             $data['refund_date'] = date('Y-m-d H:i:s');
             array_push($columns, "refund_date");
         }
 
+        /** Convert timestamp to date format*/
         if (!empty($data['timestamp'])) {
             if (is_array($data['timestamp'])) {
                 $data['date'] = date('Y-m-d H:i:s', strtotime($data['timestamp']['date']));
@@ -53,21 +63,19 @@ class ModelExtensionPaymentTwispayTransaction extends Model
             $data['identifier'] = (int)str_replace('_', '', $data['identifier']);
         }
 
+        /** Construct the query based on $data object fields filtered by $colums keys */
         $query = "INSERT INTO `" . DB_PREFIX . "twispay_transactions` SET ";
-
         foreach ($data as $key => $value) {
             if (!in_array($key, $columns)) {
                 unset($data[$key]);
             } else {
-                $db_value = $this->db->escape($value);
-                $query .= $key."="."'" . $db_value . "',";
+                $query .= $key."="."'" . $this->db->escape($value) . "',";
             }
         }
 
+        /** Trim the query */
         $query = rtrim($query, ',');
         $this->db->query($query);
-        $affected_transactions = $this->db->countAffected();
-
         return $query;
     }
 
@@ -78,14 +86,15 @@ class ModelExtensionPaymentTwispayTransaction extends Model
      * @param string status - The new status of the transaction to be updated
      *
      * @return array([key => value]) - string 'query'     - The query that was called
-                                       integer 'affected' - Number of affected rows
+     *                                 integer 'affected' - Number of affected rows
      *
      */
     public function updateTransactionStatus($id, $status)
     {
+        $this->load->helper('Twispay_Status_Updater');
         $db_trans_id = $this->db->escape($id);
         $db_status = $this->db->escape($status);
-        if ($db_status == "refund-ok") {
+        if ($db_status == Twispay_Status_Updater::$RESULT_STATUSES['REFUND_OK']) {
             $query = "UPDATE `" . DB_PREFIX. "twispay_transactions` SET `status`='".$db_status."',`refund_date`= NOW() WHERE `transactionId`='" . (int)$db_trans_id . "' AND `status`!='".$db_status."'";
         } else {
             $query = "UPDATE `" . DB_PREFIX. "twispay_transactions` SET `status`='".$db_status."' WHERE `transactionId`='" . (int)$db_trans_id . "' AND `status`!='".$db_status."'";
@@ -113,7 +122,7 @@ class ModelExtensionPaymentTwispayTransaction extends Model
         if ($this->checkTransaction($data['transactionId'])) {
             if ($overwrite) {
                 $resp = $this->updateTransactionStatus($data['transactionId'], $data['status']);
-            }else{
+            } else {
                 $resp = "Can't overwrite";
             }
         } else {
@@ -142,6 +151,27 @@ class ModelExtensionPaymentTwispayTransaction extends Model
     }
 
     /**
+     * Function that returns a database transaction by its id.
+     *
+     * @param string id - The id of the transaction
+     *
+     * @return object - the transaction object
+     *         array(object) - in case of multiple transactions with the same id this will return a list of transactions
+     *         NULL - if there is no transaction with the specified id
+     *
+     */
+    public function getTransaction($id)
+    {
+        $db_trans_id = $this->db->escape($id);
+        $query = $this->db->query("SELECT * FROM `".DB_PREFIX."twispay_transactions` WHERE `transactionId`='".(int)$db_trans_id."'");
+        if ($query->num_rows > 0) {
+            return $query->rows;
+        } else {
+            return NULL;
+        }
+    }
+
+    /**
      * Function that call the refund operation via Twispay API and update the
      * local(opencart) order based on the response.
      *
@@ -149,10 +179,10 @@ class ModelExtensionPaymentTwispayTransaction extends Model
      * @param string order_id - The local id of the order that contains the transaction that needs to be refunded
      *
      * @return array([key => value,]) - string 'status'          - API Message
-                                        string 'rawdata'         - Unprocessed response
-                                        string 'transaction_id'  - The twispay id of the refunded transaction
-                                        string 'externalOrderId' - The opencart id of the canceled order
-                                        boolean 'refunded'       - Operation success indicator
+     *                                  string 'rawdata'         - Unprocessed response
+     *                                  string 'transaction_id'  - The twispay id of the refunded transaction
+     *                                  string 'externalOrderId' - The opencart id of the canceled order
+     *                                  boolean 'refunded'       - Operation success indicator
      *
      */
     public function refund($trans_id, $order_id)
@@ -163,37 +193,48 @@ class ModelExtensionPaymentTwispayTransaction extends Model
 
         $order_recurring = $this->model_extension_payment_twispay_recurring->getRecurringByOrderId($order_id);
         $order_recurring_id = $order_recurring['order_recurring_id'];
+        $transaction = $this->getTransaction($trans_id)[0];
+        $postData = 'amount=' . $transaction['amount'] . '&' . 'message=' . 'Refund for order ' . $order_id;
 
-        $testMode = $this->config->get('payment_twispay_testMode');
-        if (!empty($testMode)) {
+        if (!empty($this->config->get('payment_twispay_testMode'))) {
             $url = 'https://api-stage.twispay.com/transaction/' . $trans_id;
             $apiKey = $this->config->get('payment_twispay_staging_site_key');
         } else {
             $url = 'https://api.twispay.com/transaction/' . $trans_id;
             $apiKey = $this->config->get('payment_twispay_live_site_key');
         }
+
+        /** Create a new cURL session. */
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array( "Authorization: Bearer " . $apiKey, "Accept: application/json" ));
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
         curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        $contents = curl_exec($ch);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/json', 'Authorization: ' . $apiKey]);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        $response = curl_exec($ch);
         curl_close($ch);
-        $json = json_decode($contents);
+        $json = json_decode($response);
+
+        /** Check if curl/decode fails */
+        if (!isset($json)) {
+            $json = new stdClass();
+            $json->message = $this->language->get('json_decode_error');
+            Twispay_Logger::Twispay_api_log($this->language->get('json_decode_error'));
+        }
 
         if ($json->message == 'Success') {
             $data = array(
-               'status'          => 'refund-ok',
+               'status'          => Twispay_Status_Updater::$RESULT_STATUSES['REFUND_OK'],
                'rawdata'         => $json,
                'transaction_id'  => $trans_id,
                'externalOrderId' => $order_id,
                'refunded'        => 1,
            );
-           Twispay_Status_Updater::updateStatus_IPN($order_id, $data, $this);
-           $this->updateTransactionStatus($trans_id, "refund-requested");
+            Twispay_Status_Updater::updateStatus_IPN($order_id, $data, $this);
+            $this->updateTransactionStatus($trans_id, Twispay_Status_Updater::$RESULT_STATUSES['REFUND_REQUESTED']);
         } else {
             $data = array(
-               'status'          => $json->error[0]->message,
+               'status'          => isset($json->error)?$json->error[0]->message:$json->message,
                'rawdata'         => $json,
                'transaction_id'  => $trans_id,
                'externalOrderId' => $order_id,

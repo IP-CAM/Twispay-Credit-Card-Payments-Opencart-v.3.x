@@ -13,14 +13,14 @@ $_['text_twispay']	          = '<a href="//twispay.com/" target="_blank"><img sr
 
 // Text
 $_['text_extension']          = 'Extensions';
-$_['text_success']            = 'Success: You have modified Twispay payment module!';
+$_['text_success']            = 'Success: You have modified the Twispay payment module!';
 $_['text_edit']               = 'Edit Twispay';
 $_['text_enabled']            = 'Enabled';
 $_['text_disabled']           = 'Disabled';
 $_['text_yes']                = 'Yes';
 $_['text_no']                 = 'No';
 $_['text_logs']               = 'Twispay Transactions';
-$_['text_config_one']         = 'Parameter one';
+$_['text_config_one']         = 'Parameter One';
 $_['text_config_two']         = 'Parameter Two';
 $_['text_saved']              = 'Saved';
 $_['text_filter_status']      = 'Status';
@@ -51,4 +51,4 @@ $_['text_s_t_s_notification'] = 'Server-to-server notification URL';
 $_['text_contact_email']      = 'Contact Email';
 
 // Error
-$_['error_permission']        = 'Warning: You do not have permission to modify payment Twispay!';
+$_['error_permission']        = 'Warning: You do not have permission to modify the Twispay payment module!';

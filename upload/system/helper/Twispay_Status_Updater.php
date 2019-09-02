@@ -1,7 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 /**
  * Twispay Helpers
  *
@@ -32,11 +29,13 @@ if (! class_exists('Twispay_Status_Updater')) :
                                          , 'CHARGE_BACK' => 'charge-back' /* Charge-back received */
                                          , 'THREE_D_PENDING' => '3d-pending' /* Waiting for 3d authentication */
                                          , 'EXPIRING' => 'expiring' /* The recurring order has expired */
+
+                                         , 'REFUND_REQUESTED' => 'refund-requested' /* The recurring order has expired */
                                          ];
         /**
          * Update the status of an order according to the received server status.
          *
-         * @param string orderId: The id of the order for which to update the status.
+         * @param string order_id: The id of the order for which to update the status.
          * @param object decrypted: Decrypted order message.
          * @param object that: Controller instance use for accessing runtime values like configuration, active language, etc.
          *
@@ -68,6 +67,7 @@ if (! class_exists('Twispay_Status_Updater')) :
                     Twispay_Logger::Twispay_log($that->language->get('log_ok_status_failed') . $order_id);
                     Twispay_Notification::notice_to_checkout($that);
                 break;
+
                 case Twispay_Status_Updater::$RESULT_STATUSES['THREE_D_PENDING']:
                     /* Mark order as Pending. */
                     $that->model_checkout_order->addOrderHistory($order_id, 1/*Pending*/, $that->language->get('a_order_hold_notice'), TRUE);
@@ -76,6 +76,7 @@ if (! class_exists('Twispay_Status_Updater')) :
                     Twispay_Logger::Twispay_log($that->language->get('log_ok_status_hold') . $order_id);
                     Twispay_Notification::notice_to_checkout($that, '', $that->lang('general_error_hold_notice'));
                 break;
+
                 case Twispay_Status_Updater::$RESULT_STATUSES['IN_PROGRESS']:
                 case Twispay_Status_Updater::$RESULT_STATUSES['COMPLETE_OK']:
                     /* If there is no invoice created*/
@@ -91,13 +92,15 @@ if (! class_exists('Twispay_Status_Updater')) :
                     $that->model_checkout_order->addOrderHistory($order_id, 2/*Processing*/, $that->language->get('a_order_paid_notice').$decrypted['transactionId'], TRUE);
                     $that->model_extension_payment_twispay_transaction->insertTransaction($decrypted);
                     Twispay_Logger::Twispay_log($that->language->get('log_ok_status_complete') . $order_id);
+
                     /* Redirect to Twispay "Thank you Page" if it is set, if not, redirect to default "Thank you Page" */
-                    if ($that->config->get('twispay_redirect_page') != null && strlen($that->config->get('twispay_redirect_page'))) {
-                        Twispay_Thankyou::twispay($that->config->get('twispay_redirect_page'));
+                    if ($that->config->get('twispay_redirect_page') != NULL && strlen($that->config->get('twispay_redirect_page'))) {
+                        Twispay_Thankyou::custom_page($that->config->get('twispay_redirect_page'));
                     } else {
-                        Twispay_Thankyou::default();
+                        Twispay_Thankyou::default_page();
                     }
                 break;
+
                 default:
                     Twispay_Logger::Twispay_log($that->language->get('log_error_wrong_status') . $decrypted['status']);
                     Twispay_Notification::notice_to_checkout($that);
@@ -113,7 +116,7 @@ if (! class_exists('Twispay_Status_Updater')) :
         /**
          * Update the status of an subscription according to the received server status.
          *
-         * @param string orderId: The ID of the order to be updated.
+         * @param string order_id: The ID of the order to be updated.
          * @param object decrypted: Decrypted order message.
          * @param object that: Controller instance use for accessing runtime values like configuration, active language, etc.
          *
@@ -135,7 +138,7 @@ if (! class_exists('Twispay_Status_Updater')) :
             $order_recurring = $that->model_extension_payment_twispay_recurring->getRecurringByOrderId($order_id);
 
             switch ($decrypted['status']) {
-                // no case for UNCERTAIN status
+                /** no case for UNCERTAIN status */
                 case Twispay_Status_Updater::$RESULT_STATUSES['EXPIRING']:
                 case Twispay_Status_Updater::$RESULT_STATUSES['CANCEL_OK']:
                     /* Mark order as canceled. */
@@ -146,6 +149,7 @@ if (! class_exists('Twispay_Status_Updater')) :
                     $that->model_checkout_order->addOrderHistory($order_id, 7/*Canceled*/, $message, TRUE);
                     Twispay_Logger::Twispay_log($that->language->get('log_ok_status_canceled') . $order_id);
                 break;
+
                 case Twispay_Status_Updater::$RESULT_STATUSES['COMPLETE_FAIL']:
                     /* Mark order as Failed. */
                     $message = $that->language->get('a_order_failed_notice');
@@ -155,6 +159,7 @@ if (! class_exists('Twispay_Status_Updater')) :
                     $that->model_checkout_order->addOrderHistory($order_id, 10/*Failed*/, $message, TRUE);
                     Twispay_Logger::Twispay_log($that->language->get('log_ok_status_failed') . $order_id);
                 break;
+
                 case Twispay_Status_Updater::$RESULT_STATUSES['VOID_OK']:
                     /* Mark order as voided. */
                     $message = $that->language->get('a_order_void_notice');
@@ -165,6 +170,7 @@ if (! class_exists('Twispay_Status_Updater')) :
                     $that->model_checkout_order->addOrderHistory($order_id, 16/*Voided*/, $message, TRUE);
                     Twispay_Logger::Twispay_log($that->language->get('log_ok_status_voided') . $order_id);
                 break;
+
                 case Twispay_Status_Updater::$RESULT_STATUSES['CHARGE_BACK']:
                     /* Mark order as refunded. */
                     $message = $that->language->get('a_order_chargedback_notice');
@@ -176,14 +182,14 @@ if (! class_exists('Twispay_Status_Updater')) :
 
                     Twispay_Logger::Twispay_log($that->language->get('log_ok_status_charged_back') . $order_id);
                 break;
+
                 case Twispay_Status_Updater::$RESULT_STATUSES['REFUND_OK']:
                     /* Mark order as refunded. */
                     $message = $that->language->get('a_order_refunded_requested_notice');
                     if(isset($decrypted['transactionId'])){
                       /* Add transaction or update it if already exists */
                       $that->model_extension_payment_twispay_transaction->insertTransaction($decrypted);
-                      $message = $that->language->get('a_order_refunded_notice');
-                      $message = $message.$decrypted['transactionId'];
+                      $message = $that->language->get('a_order_refunded_notice').$decrypted['transactionId'];
                     }
                     if($order_recurring){
                       $that->model_checkout_order->addOrderHistory($order_id, $order['order_status_id']/*Current status*/, $message, TRUE);
@@ -192,6 +198,7 @@ if (! class_exists('Twispay_Status_Updater')) :
                     }
                     Twispay_Logger::Twispay_log($that->language->get('log_ok_status_refund') . $order_id);
                 break;
+
                 case Twispay_Status_Updater::$RESULT_STATUSES['THREE_D_PENDING']:
                     /* Mark order as on-hold. */
                     $message = $that->language->get('a_order_hold_notice');
@@ -201,6 +208,7 @@ if (! class_exists('Twispay_Status_Updater')) :
                     $that->model_checkout_order->addOrderHistory($order_id, 1/*`Pending`*/, $that->language->get('a_order_hold_notice'), TRUE);
                     Twispay_Logger::Twispay_log($that->language->get('log_ok_status_hold') . $order_id);
                 break;
+
                 case Twispay_Status_Updater::$RESULT_STATUSES['IN_PROGRESS']:
                 case Twispay_Status_Updater::$RESULT_STATUSES['COMPLETE_OK']:
                     $message = $that->language->get('a_order_paid_notice');
@@ -221,6 +229,7 @@ if (! class_exists('Twispay_Status_Updater')) :
                     $that->model_checkout_order->addOrderHistory($order_id, 2/*Processing*/, $message, TRUE);
                     Twispay_Logger::Twispay_log($that->language->get('log_ok_status_complete') . $order_id);
                 break;
+
                 default:
                   Twispay_Logger::Twispay_log($that->language->get('log_error_wrong_status') . $decrypted['status']);
                 break;
@@ -234,6 +243,7 @@ if (! class_exists('Twispay_Status_Updater')) :
 
         /**
          * Update the status of an subscription according to the received server status.
+         *
          * @param object order_recurring: The recurring order object.
          * @param object decrypted: Decrypted order message.
          * @param object that: Controller instance use for accessing runtime values like configuration, active language, etc.
@@ -242,13 +252,13 @@ if (! class_exists('Twispay_Status_Updater')) :
          */
         private static function updateSubscription($order_recurring, $decrypted, $that)
         {
-            #load dependencies
-            $that->language->load('extension/payment/twispay');
+            /** load dependencies */
             $that->load->model('extension/payment/twispay_recurring');
 
             $order_id = $decrypted['externalOrderId'];
-            if(isset($decrypted['orderId']))
-              $tw_order_id = $decrypted['orderId'];
+            if(isset($decrypted['orderId'])){
+                $tw_order_id = $decrypted['orderId'];
+            }
             $order_recurring_id = $order_recurring['order_recurring_id'];
 
             //link twispay order with opencart order
@@ -260,12 +270,12 @@ if (! class_exists('Twispay_Status_Updater')) :
             }
 
             //transaction header
-            $transaction_data = [ 'order_recurring_id' => (int)$order_recurring_id,
-                                'date_added' => "NOW()",
-                                'amount' => isset($decrypted['amount'])?(float)$decrypted['amount']:0,
-                                'type' => null,
-                                'reference' => isset($decrypted['transactionId'])?'tw_'.$decrypted['transactionId']:0,//tw_@transaction_id
-                                ];
+            $transaction_data = [ 'order_recurring_id' => (int)$order_recurring_id
+                                , 'date_added' => "NOW()"
+                                , 'amount' => isset($decrypted['amount'])?(float)$decrypted['amount']:0
+                                , 'type' => NULL
+                                , 'reference' => isset($decrypted['transactionId'])?'tw_'.$decrypted['transactionId']:0 /** tw_@transaction_id */ ];
+
             switch ($decrypted['status']) {
               // no case for UNCERTAIN status
               case Twispay_Status_Updater::$RESULT_STATUSES['COMPLETE_FAIL']:
@@ -275,6 +285,7 @@ if (! class_exists('Twispay_Status_Updater')) :
                   $that->model_extension_payment_twispay_recurring->addRecurringTransaction($transaction_data);
                 }
               break;
+
               case Twispay_Status_Updater::$RESULT_STATUSES['CANCEL_OK']:
                 $that->model_extension_payment_twispay_recurring->editOrderRecurringStatus($order_recurring_id, 3);//cancelled
                 if($transaction_data['reference']){
@@ -282,6 +293,7 @@ if (! class_exists('Twispay_Status_Updater')) :
                   $that->model_extension_payment_twispay_recurring->addRecurringTransaction($transaction_data);
                 }
               break;
+
               case Twispay_Status_Updater::$RESULT_STATUSES['REFUND_OK']:
                 // $that->model_extension_payment_twispay_recurring->editOrderRecurringStatus($order_recurring_id, 4);//suspended
                 if($transaction_data['reference']){
@@ -289,10 +301,12 @@ if (! class_exists('Twispay_Status_Updater')) :
                   $that->model_extension_payment_twispay_recurring->addRecurringTransaction($transaction_data);
                 }
               break;
+
               case Twispay_Status_Updater::$RESULT_STATUSES['VOID_OK']:
                 $that->model_extension_payment_twispay_recurring->editOrderRecurringStatus($order_recurring_id, 4);//suspended
                 //no transaction
               break;
+
               case Twispay_Status_Updater::$RESULT_STATUSES['CHARGE_BACK']:
                 $that->model_extension_payment_twispay_recurring->editOrderRecurringStatus($order_recurring_id, 4);//suspended
                 if($transaction_data['reference']){
@@ -300,6 +314,7 @@ if (! class_exists('Twispay_Status_Updater')) :
                   $that->model_extension_payment_twispay_recurring->addRecurringTransaction($transaction_data);
                 }
               break;
+
               case Twispay_Status_Updater::$RESULT_STATUSES['THREE_D_PENDING']:
                 $that->model_extension_payment_twispay_recurring->editOrderRecurringStatus($order_recurring_id, 6);//pending
                 if($transaction_data['reference']){
@@ -307,6 +322,7 @@ if (! class_exists('Twispay_Status_Updater')) :
                   $that->model_extension_payment_twispay_recurring->addRecurringTransaction($transaction_data);
                 }
               break;
+
               case Twispay_Status_Updater::$RESULT_STATUSES['EXPIRING']:
                 $that->model_extension_payment_twispay_recurring->editOrderRecurringStatus($order_recurring_id, 5);//expired
                 if($transaction_data['reference']){
@@ -314,6 +330,7 @@ if (! class_exists('Twispay_Status_Updater')) :
                   $that->model_extension_payment_twispay_recurring->addRecurringTransaction($transaction_data);
                 }
               break;
+
               case Twispay_Status_Updater::$RESULT_STATUSES['IN_PROGRESS']:
               case Twispay_Status_Updater::$RESULT_STATUSES['COMPLETE_OK']:
                   $that->model_extension_payment_twispay_recurring->editOrderRecurringStatus($order_recurring_id, 1);//active
@@ -321,7 +338,7 @@ if (! class_exists('Twispay_Status_Updater')) :
                     $transaction_data['type'] = 1;//payment_ok
                     $that->model_extension_payment_twispay_recurring->addRecurringTransaction($transaction_data);
                     if ($that->model_extension_payment_twispay_recurring->isLastRecurringTransaction($order_recurring)) {
-                        $that->model_extension_payment_twispay_recurring->cancelRecurring($tw_order_id, $order_id);
+                        $that->model_extension_payment_twispay_recurring->cancelRecurring($tw_order_id, $order_id, 'Automatic');
                     }
                   }
               break;
