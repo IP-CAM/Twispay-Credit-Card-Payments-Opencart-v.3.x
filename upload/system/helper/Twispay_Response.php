@@ -5,7 +5,7 @@
  * Decodes and validates notifications sent by the Twispay server.
  *
  * @author   Twistpay
- * @version  1.0.0
+ * @version  1.0.1
  */
 
 /* Security class check */

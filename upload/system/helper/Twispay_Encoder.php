@@ -5,7 +5,7 @@
  * Encodes notifications sent to the twispay platform.
  *
  * @author   Twistpay
- * @version  1.0.0
+ * @version  1.0.1
  */
 
 /* Security class check */
