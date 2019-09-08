@@ -82,10 +82,6 @@ class ModelExtensionPaymentTwispayRecurring extends Model
      */
     public function addRecurringTransaction($data, $overwrite = FALSE)
     {
-        $data = json_decode(json_encode($data), TRUE);
-        if (!isset($data)) {
-            return FALSE;
-        }
         if (!isset($data['reference'])) {
             return FALSE;
         }

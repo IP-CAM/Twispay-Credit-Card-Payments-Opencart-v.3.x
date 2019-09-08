@@ -36,7 +36,7 @@ if (! class_exists('Twispay_Status_Updater')) :
          * Update the status of an order according to the received server status.
          *
          * @param string order_id: The id of the order for which to update the status.
-         * @param object decrypted: Decrypted order message.
+         * @param array([key => value]) decrypted: Decrypted order message.
          * @param object that: Controller instance use for accessing runtime values like configuration, active language, etc.
          *
          * @return void
@@ -117,7 +117,7 @@ if (! class_exists('Twispay_Status_Updater')) :
          * Update the status of an subscription according to the received server status.
          *
          * @param string order_id: The ID of the order to be updated.
-         * @param object decrypted: Decrypted order message.
+         * @param array([key => value]) decrypted: Decrypted order message.
          * @param object that: Controller instance use for accessing runtime values like configuration, active language, etc.
          *
          * @return void
@@ -244,8 +244,8 @@ if (! class_exists('Twispay_Status_Updater')) :
         /**
          * Update the status of an subscription according to the received server status.
          *
-         * @param object order_recurring: The recurring order object.
-         * @param object decrypted: Decrypted order message.
+         * @param array([key => value]) order_recurring: The recurring order data.
+         * @param array([key => value]) decrypted: Decrypted order message.
          * @param object that: Controller instance use for accessing runtime values like configuration, active language, etc.
          *
          * @return void
