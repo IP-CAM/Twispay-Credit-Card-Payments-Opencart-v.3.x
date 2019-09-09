@@ -20,10 +20,6 @@ class ModelExtensionPaymentTwispayTransaction extends Model
     public function insertTransaction($data)
     {
         $this->load->helper('Twispay_Status_Updater');
-        $data =json_decode(json_encode($data), TRUE);
-        if (!isset($data)) {
-            return FALSE;
-        }
 
         /** Define filtred keys */
         $columns = array(
@@ -66,9 +62,7 @@ class ModelExtensionPaymentTwispayTransaction extends Model
         /** Construct the query based on $data object fields filtered by $colums keys */
         $query = "INSERT INTO `" . DB_PREFIX . "twispay_transactions` SET ";
         foreach ($data as $key => $value) {
-            if (!in_array($key, $columns)) {
-                unset($data[$key]);
-            } else {
+            if (in_array($key, $columns)) {
                 $query .= $key."="."'" . $this->db->escape($value) . "',";
             }
         }
@@ -106,29 +100,6 @@ class ModelExtensionPaymentTwispayTransaction extends Model
            'affected'  => $affected_transactions,
        );
         return $array;
-    }
-
-    /**
-     * Function that insert a record or update it if already exists.
-     *
-     * @param array([key => value]) data - Array of data to be populated
-     * @param boolean overwrite          - Allow a record to be updated or not
-     *
-     * @return {array|string} - Operation response
-     *
-     */
-    public function logTransaction($data, $overwrite = FALSE)
-    {
-        if ($this->checkTransaction($data['transactionId'])) {
-            if ($overwrite) {
-                $resp = $this->updateTransactionStatus($data['transactionId'], $data['status']);
-            } else {
-                $resp = "Can't overwrite";
-            }
-        } else {
-            $resp = $this->insertTransaction($data);
-        }
-        return json_encode($resp);
     }
 
     /**
@@ -192,7 +163,6 @@ class ModelExtensionPaymentTwispayTransaction extends Model
         $this->load->model('extension/payment/twispay_recurring');
 
         $order_recurring = $this->model_extension_payment_twispay_recurring->getRecurringByOrderId($order_id);
-        $order_recurring_id = $order_recurring['order_recurring_id'];
         $transaction = $this->getTransaction($trans_id)[0];
         $postData = 'amount=' . $transaction['amount'] . '&' . 'message=' . 'Refund for order ' . $order_id;
 
