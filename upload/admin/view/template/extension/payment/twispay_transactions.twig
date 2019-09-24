@@ -1,0 +1,387 @@
+{{ header }}{{ column_left }}
+<div id="content">
+    <div class="page-header">
+        <div class="container-fluid">
+            <div class="pull-right">
+                {#<button type="submit" form="form-payment-twispay" data-toggle="tooltip" title="{{ button_save }}" class="btn btn-primary"><i class="fa fa-save"></i></button>#}
+                <a data-toggle="tooltip" title="Sync recurring orders" class="btn btn-primary sync_subscriptions"><i class="i-loading fa fa-circle-o-notch fa-spin d-none"></i><i class="i-default fa fa-refresh"></i></a>
+                <a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i class="fa fa-reply"></i></a>
+            </div>
+            <h1>{#<img src="view/image/payment/twispay.png" alt="" />#}{{ heading_title }}</h1>
+            <ul class="breadcrumb">
+                {% for breadcrumb in breadcrumbs %}
+                    <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="container-fluid">
+        {% if error_warning %}
+            <div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+        {% endif %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Transactions</h3>
+                <div class="trans-filter pull-right" style="margin-left:10px">
+                    <label>{{ filter_customer }}</label>
+
+                        <select class="trans-customers">
+                            <option value="0" {% if selected=='0' %} selected="selected"{% endif %}>All Customers</option>
+                              {% if customers is not empty %}
+                            {% for customer in customers %}
+                                <option value="{{ customer['customer_id'] }}" {% if selected_user_id==customer['customer_id'] %} selected="selected"{% endif %} title="{{ customer['email'] }}">{{ customer['name'] }}</option>
+                            {% endfor %}
+                            {% endif %}
+                        </select>
+
+                </div>
+
+                <div class="trans-filter pull-right">
+                    <label>{{ filter_status }}</label>
+                        <select class="trans-status">
+                            <option value="0" {% if selected=='0' %} selected="selected"{% endif %}>All Statuses</option>
+                            {% if statuses is not empty %}
+                            {% for status in statuses %}
+                                <option value="{{ status['status'] }}" {% if selected_status==status['status'] %} selected="selected"{% endif %} title="{{ status['status'] }}">{{ status['status'] }}</option>
+                            {% endfor %}
+                              {% endif %}
+                        </select>
+                </div>
+            </div>
+            <div class="panel-body">
+                {% if trans is empty %}
+                    <div class="nodata">No transactions</div>
+                {% else %}
+                    <table class="twispay-logs" cellpading="10px" cellspacing="0" width="100%" border="1">
+                        <thead>
+                            <tr>
+                                <th colspan="3" class="big-border">Website</th>
+                                <th colspan="12">Twispay</th>
+                            </tr>
+                            <tr>
+                                <th>User Id</th>
+                                <th class="sortable" data-val="orderId">Order Id</th>
+                                <th class="big-border">Invoice Id</th>
+
+                                <th>Customer Id</th>
+                                <th >Order Id</th>
+                                <th>Card Id</th>
+                                <th class="sortable" data-val="transactionId">Transaction Id</th>
+                                <th>Status</th>
+                                <th>Amount</th>
+                                <th>Currency</th>
+                                <th class="sortable desc" data-val="date">Date</th>
+                                <th>Refund Date</th>
+                                <th>Refund</th>
+                                <th>Cancel Entire Subscription</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                    {% for tran in trans %}
+                            <tr>
+                                <td>{{ tran['identifier'] }}</td>
+                                <td>{{ tran['order_id'] }}</td>
+                                <td class="big-border">{{ tran['invoice'] }}</td>
+                                <td>{{ tran['customerId'] }}</td>
+                                <td>{{ tran['orderId'] }}</td>
+                                <td>{{ tran['cardId'] }}</td>
+                                <td>{{ tran['transactionId'] }}</td>
+                                <td>{{ tran['status'] }}</td>
+                                <td>{{ tran['amount'] }}</td>
+                                <td>{{ tran['currency'] }}</td>
+                                <td>{{ tran['date'] }}</td>
+                                <td>{% if tran['status'] == status_refund_ok %}{{ tran['refund_date'] }}{% endif %}</td>
+                                <td>{% if tran['status'] == status_complete_ok %}<i class="refund fa fa-undo red" aria-hidden="TRUE" data-transid="{{ tran['transactionId'] }}" data-orderid="{{ tran['order_id'] }}" data-store="{{ tran['store_id'] }}"></i>{% endif %}</td>
+                                <td>{% if tran['order_status'] == order_status_processing_id and tran['is_recurring'] == 1 %}<i class="cancel_subscription fa fa-times red" aria-hidden="TRUE" data-tworderid="{{ tran['orderId'] }}" data-orderid="{{ tran['order_id'] }}" data-store="{{ tran['store_id'] }}"></i>{% endif %}</td>
+                            </tr>
+                    {% endfor %}
+                        </tbody>
+                    </table>
+
+                {% endif %}
+                {#{{ catalog }}#}{#{{ api_token }}#}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+  /** SORT START */
+  /** Change listener for filters - customer selector */
+  $(document).on('change', 'select.trans-customers', function() {
+    var f_uid_val = $(this).val();
+    var uri = updateQueryStringParameter(window.location.href, "f_uid", f_uid_val);
+    uri = updateQueryStringParameter(uri, "f_status", 0);
+    window.location.href = uri;
+  });
+
+  /** Change listener for filters - status selector */
+  $(document).on('change', 'select.trans-status', function() {
+    var f_status_val = $(this).val();
+    window.location.href = updateQueryStringParameter(window.location.href, "f_status", f_status_val);
+  });
+
+  /** Read sort parameter from GET and set the buttons state */
+  $(function() {
+    var GET_sort = $.urlParam('sort');
+    var GET_sort_order = "";
+    var GET_sort_field = "";
+    var current_sort_th = "";
+    /** Parse sort value.
+     *  correct: sort = field-name_sort-order
+     */
+    if (GET_sort) {
+      GET_sort_order = GET_sort.split("_")[1];
+      GET_sort_field = GET_sort.split("_")[0];
+      current_sort_th = $('th.sortable[data-val=' + GET_sort_field + ']');
+    }
+    if (current_sort_th) {
+      $('th.sortable').removeClass("asc").removeClass("desc");
+      if (GET_sort_order == "ASC") {
+        current_sort_th.addClass("asc");
+      } else if (GET_sort_order == "DESC") {
+        current_sort_th.addClass("desc");
+      }
+    }
+  })
+
+  /** Write sort parameter to GET and set the buttons state */
+  $('th.sortable').click(function() {
+    /** Read from uri*/
+    var GET_sort = $.urlParam('sort');
+    var GET_sort_order = "";
+    var GET_sort_field = "";
+    if (GET_sort) {
+      GET_sort_order = GET_sort.split("_")[1];
+      GET_sort_field = GET_sort.split("_")[0];
+    }
+    /** Update the values*/
+    var current_name = $(this).attr("data-val");
+    if (current_name == GET_sort_field && GET_sort_order == "ASC") {
+      current_order = "DESC";
+    } else {
+      current_order = "ASC";
+    }
+    /** Reload the page with the new value for sort parameter */
+    window.location.href = updateQueryStringParameter(window.location.href, "sort", current_name + '_' + current_order);
+  })
+  /** SORT STOP */
+
+  /** REFUND START */
+  /** Click listener for refund button */
+  $(document).on('click', 'i.refund', function() {
+    /** Read button attributes */
+    var transid = $(this).attr('data-transid');
+    var orderid = $(this).attr('data-orderid');
+    var parent = $(this).parents('tr');
+    var token = "{{ token }}";
+    $(parent).css('opacity', '0.5');
+    /** Endpoint URL + GET parameters */
+    var refund ='{{ catalog }}index.php?route=api/twispay/refund&api_token={{ api_token }}&trans_id=' + transid + '&order_id=' + orderid;
+    setTimeout(function() {
+      /** user confirmation popup */
+      if (window.confirm("Are you sure you want to refund transaction #" + transid + " ?\nProcess is not reversible !!!")) {
+        $.ajax({
+          url: refund,
+          success: function(data) {
+            $(parent).css('opacity', '1');
+            /** if ajax call succeeded */
+            if (typeof data.success != 'undefined') {
+              alert('Successfuly refunded !');
+              window.location.reload();
+            } else {
+              /** if ajax call failed */
+              alert(data.error);
+            }
+          },
+          /** if ajax call failed */
+          error: function(xhr, ajaxOptions, thrownError) {
+            $(parent).css('opacity', '1');
+            alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+          }
+        });
+      } else {
+        $(parent).css('opacity', '1');
+      }
+    }, 50);
+  });
+  /** REFUND STOP */
+
+  /** CANCEL START */
+  /** Click listener for cancel button */
+  $(document).on('click', 'i.cancel_subscription', function() {
+    /** Read button attributes */
+    var orderid = $(this).attr('data-orderid');
+    var tworderid = $(this).attr('data-tworderid');
+    var parent = $(this).parents('tr');
+    var token = "{{ token }}";
+    $(parent).css('opacity', '0.5');
+    /** Endpoint URL + GET parameters */
+    var cancel ='{{ catalog }}index.php?route=api/twispay/cancel&api_token={{ api_token }}&tw_order_id=' + tworderid + '&order_id=' + orderid;
+    setTimeout(function() {
+      /** user confirmation popup */
+      if (window.confirm("Are you sure you want to cancel order #" + orderid + " ?\n")) {
+        $.ajax({
+          url: cancel,
+          success: function(data) {
+            $(parent).css('opacity', '1');
+            /** if ajax call succeeded */
+            if (typeof data.success != 'undefined') {
+              alert('Successfuly canceled !');
+              window.location.reload();
+            /** if ajax call failed */
+            } else {
+              alert(data.error);
+            }
+          },
+          /** if ajax call failed */
+          error: function(xhr, ajaxOptions, thrownError) {
+            $(parent).css('opacity', '1');
+            alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+          }
+        });
+      } else {
+        $(parent).css('opacity', '1');
+      }
+    }, 50);
+  });
+  /** CANCEL STOP */
+
+  /** SYNC ALL RECURRINGS START */
+  /** Click listener for sync all button */
+  $(document).on('click', '.sync_subscriptions', function() {
+    /** Endpoint URL */
+    var sync ='{{ catalog }}index.php?route=api/twispay/sync&api_token={{ api_token }}';
+    /** Preload the button */
+    buttonLoadingState($('.sync_subscriptions'));
+    setTimeout(function() {
+      $.ajax({
+        url: sync,
+        success: function(data) {
+          /** if ajax call succeeded */
+          if (typeof data.success != 'undefined') {
+            alert('Successful synced! - '+ data.synced + ' orders');
+            window.location.reload();
+          } else {
+            alert(data.error);
+          }
+          buttonDefaultState($('.sync_subscriptions'));
+        },
+        /** if ajax call failed */
+        error: function(xhr, ajaxOptions, thrownError) {
+          alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+          buttonDefaultState($('.sync_subscriptions'));
+        }
+      });
+    }, 50);
+  });
+  /** SYNC ALL RECURRINGS STOP */
+
+  /** Helper functions
+   * Set the loading state for button
+   *
+   * @param button - jQuery selector for button element
+   */
+  function buttonLoadingState(button){
+    button.attr('disabled','disabled').addClass('disabled');
+    button.find('.i-loading').removeClass('d-none');
+    button.find('.i-default').addClass('d-none');
+  }
+  /** Set the normal state for button
+   *
+   * @param button - jQuery selector for button element
+   */
+  function buttonDefaultState(button){
+    button.removeAttr("disabled").removeClass('disabled');
+    button.find('.i-loading').addClass('d-none');
+    button.find('.i-default').removeClass('d-none');
+  }
+
+  /** Add a GET parameter into a URI string or update it if already exists
+   *
+   * @param string uri - jQuery selector for button element
+   *        string key - GET parameter key
+   *        string value - GET parameter value
+   *
+   * @return string - the new uri address
+   */
+  function updateQueryStringParameter(uri, key, value) {
+    var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
+    var separator = uri.indexOf('?') !== -1
+      ? "&"
+      : "?";
+    if (uri.match(re)) {
+      return uri.replace(re, '$1' + key + "=" + value + '$2');
+    } else {
+      return uri + separator + key + "=" + value;
+    }
+  }
+  /** Read the GET parameter value by key
+   *
+   * @param string key - the key of the element to be returned
+   *
+   * @return string - the element value
+   */
+  $.urlParam = function(key) {
+    var results = new RegExp('[\?&]' + key + '=([^&#]*)').exec(window.location.href);
+    if (results == null) {
+      return null;
+    }
+    return decodeURI(results[1]) || 0;
+  }
+</script>
+
+<style>
+    .big-border{
+        border-right: 4px solid #a7a7a7;
+    }
+    i.refund,
+    i.cancel_subscription{
+      font-size: 20px;
+    }
+    i.cancel_subscription{
+      font-size: 20px;
+    }
+    table.twispay-logs tr:nth-child(even) td{
+        background-color: #ffffff;
+    }
+    table.twispay-logs tr:nth-child(odd) td{
+        background-color: #f5f5f5;
+    }
+    table.twispay-logs td{
+        text-align: center;
+        padding: 4px;
+    }
+    table.twispay-logs th{
+        text-align: center;
+        padding: 4px;
+    }
+    .red{
+        color:#dd0000;
+        cursor: pointer;
+    }
+    .sortable{
+      color: #1e91cf;
+      cursor: pointer;
+    }
+    .sortable:hover,.sortable:focus{
+      color: #14628c;
+    }
+    .sortable.asc::after,.sortable.desc::after{
+      font-family: FontAwesome;
+    }
+    .sortable.asc::after{
+      content: " \f106";
+    }
+    .sortable.desc::after{
+      content: " \f107";
+    }
+    .d-none{
+      display: none;
+    }
+</style>
+
+{{footer}}
