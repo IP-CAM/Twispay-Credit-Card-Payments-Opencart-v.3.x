@@ -234,12 +234,15 @@ class ControllerExtensionPaymentTwispay extends Controller
         $this->load->model('user/api');
         $api_info = $this->model_user_api->getApi($this->config->get('config_api_id'));
 
+        /** If API defined and user has write permision over orders **/
         if ($api_info && $this->user->hasPermission('modify', 'sale/order')) {
             $session = new Session($this->config->get('session_engine'), $this->registry);
             $session->start();
             $this->model_user_api->deleteApiSessionBySessonId($session->getId());
             $this->model_user_api->addApiSession($api_info['api_id'], $session->getId(), $this->request->server['REMOTE_ADDR']);
             $session->data['api_id'] = $api_info['api_id'];
+
+            /** Set the api_token with current user_token**/
             $data['api_token'] = $this->session->data['user_token'];
         } else {
             $data['api_token'] = '';

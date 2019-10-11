@@ -17,6 +17,7 @@ class ControllerExtensionPaymentTwispayApi extends Controller
         $this->language->load('extension/payment/twispay');
         $json = array();
 
+        /** Security check if user token match api_token sent via GET **/
         if (!(isset($this->session->data['user_token']) && isset($_GET['api_token']) && $this->session->data['user_token'] === $_GET['api_token'] )) {
             $json['error'] = $this->language->get('error_permission');
         } else {
@@ -50,6 +51,7 @@ class ControllerExtensionPaymentTwispayApi extends Controller
         $this->language->load('extension/payment/twispay');
         $json = array();
 
+        /** Security check if user token match api_token sent via GET **/
         if (!(isset($this->session->data['user_token']) && isset($_GET['api_token']) && $this->session->data['user_token'] === $_GET['api_token'] )) {
             $json['error'] = $this->language->get('error_permission');
         } else {
@@ -81,6 +83,7 @@ class ControllerExtensionPaymentTwispayApi extends Controller
     {
         $this->language->load('extension/payment/twispay');
 
+        /** Security check if user token match api_token sent via GET **/
         if (!(isset($this->session->data['user_token']) && isset($_GET['api_token']) && $this->session->data['user_token'] === $_GET['api_token'] )) {
             $json['error'] = $this->language->get('error_permission');
         } else {
