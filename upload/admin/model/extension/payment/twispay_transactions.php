@@ -20,7 +20,7 @@ class ModelExtensionPaymentTwispayTransactions extends Model
               `status` varchar(16) NOT NULL,
               `invoice` varchar(30) NOT NULL,
               `order_id` int(11) NOT NULL,
-              `identifier` int(11) NOT NULL,
+              `identifier` varchar(30) NOT NULL,
               `customerId` int(11) NOT NULL,
               `orderId` int(11) NOT NULL,
               `cardId` int(11) NOT NULL,

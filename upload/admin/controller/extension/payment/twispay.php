@@ -8,7 +8,7 @@ class ControllerExtensionPaymentTwispay extends Controller
 {
     private $error = array();
     private $baseurl;
-    
+
     /**
     *||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
     *||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
@@ -215,7 +215,7 @@ class ControllerExtensionPaymentTwispay extends Controller
         $data['sort_col'] = $sort_col;
         $data['sort_order'] = $sort_order;
 
-        $this->load->helper('Twispay_Status_Updater');
+        require_once(DIR_CATALOG.'controller/extension/payment/twispay/helpers/Twispay_Status_Updater.php');
         $data['status_refund_ok'] = Twispay_Status_Updater::$RESULT_STATUSES['REFUND_OK'];
         $data['status_complete_ok'] = Twispay_Status_Updater::$RESULT_STATUSES['COMPLETE_OK'];
         $data['order_status_processing_id'] = 2;
@@ -240,7 +240,7 @@ class ControllerExtensionPaymentTwispay extends Controller
             $this->model_user_api->deleteApiSessionBySessonId($session->getId());
             $this->model_user_api->addApiSession($api_info['api_id'], $session->getId(), $this->request->server['REMOTE_ADDR']);
             $session->data['api_id'] = $api_info['api_id'];
-            $data['api_token'] = $session->getId();
+            $data['api_token'] = $this->session->data['user_token'];
         } else {
             $data['api_token'] = '';
         }

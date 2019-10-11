@@ -49,10 +49,10 @@ if (! class_exists('Twispay_Status_Updater')) :
             $that->load->model('extension/payment/twispay');
             $that->load->model('extension/payment/twispay_recurring');
             $that->load->model('extension/payment/twispay_transaction');
-            $that->load->helper('Twispay_Logger');
-            $that->load->helper('Twispay_Status_Updater');
-            $that->load->helper('Twispay_Notification');
-            $that->load->helper('Twispay_Thankyou');
+            require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Logger.php');
+            require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Status_Updater.php');
+            require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Notification.php');
+            require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Thankyou.php');
 
             /* Extract the order. */
             $order = $that->model_checkout_order->getOrder($order_id);
@@ -130,8 +130,8 @@ if (! class_exists('Twispay_Status_Updater')) :
             $that->load->model('extension/payment/twispay');
             $that->load->model('extension/payment/twispay_recurring');
             $that->load->model('extension/payment/twispay_transaction');
-            $that->load->helper('Twispay_Logger');
-            $that->load->helper('Twispay_Status_Updater');
+            require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Logger.php');
+            require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Status_Updater.php');
 
             /* Extract the order. */
             $order = $that->model_checkout_order->getOrder($order_id);
