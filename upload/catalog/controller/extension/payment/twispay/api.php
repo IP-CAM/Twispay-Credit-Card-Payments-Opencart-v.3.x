@@ -4,7 +4,7 @@
  * @version  1.0.1
  */
 
-class ControllerApiTwispay extends Controller
+class ControllerExtensionPaymentTwispayApi extends Controller
 {
     /**
      * Endndpoint for recurring order cancel operation
@@ -17,7 +17,8 @@ class ControllerApiTwispay extends Controller
         $this->language->load('extension/payment/twispay');
         $json = array();
 
-        if (!isset($this->session->data['api_id'])) {
+        /** Security check if user token match api_token sent via GET **/
+        if (!(isset($this->session->data['user_token']) && isset($_GET['api_token']) && $this->session->data['user_token'] === $_GET['api_token'] )) {
             $json['error'] = $this->language->get('error_permission');
         } else {
             $this->load->model('extension/payment/twispay_recurring');
@@ -50,7 +51,8 @@ class ControllerApiTwispay extends Controller
         $this->language->load('extension/payment/twispay');
         $json = array();
 
-        if (!isset($this->session->data['api_id'])) {
+        /** Security check if user token match api_token sent via GET **/
+        if (!(isset($this->session->data['user_token']) && isset($_GET['api_token']) && $this->session->data['user_token'] === $_GET['api_token'] )) {
             $json['error'] = $this->language->get('error_permission');
         } else {
             $this->load->model('extension/payment/twispay_transaction');
@@ -81,11 +83,8 @@ class ControllerApiTwispay extends Controller
     {
         $this->language->load('extension/payment/twispay');
 
-        if (isset($_POST['subscriptions'])) {
-            $subscriptions = $_POST['subscriptions'];
-        }
-
-        if (!isset($this->session->data['api_id'])) {
+        /** Security check if user token match api_token sent via GET **/
+        if (!(isset($this->session->data['user_token']) && isset($_GET['api_token']) && $this->session->data['user_token'] === $_GET['api_token'] )) {
             $json['error'] = $this->language->get('error_permission');
         } else {
             $this->load->model('extension/payment/twispay_recurring');

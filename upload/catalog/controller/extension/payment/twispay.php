@@ -94,8 +94,8 @@ class ControllerExtensionPaymentTwispay extends Controller
         /** Load dependecies */
         $this->language->load('extension/payment/twispay');
         $this->load->model('checkout/order');
-        $this->load->helper('Twispay_Encoder');
-        $this->load->helper('Twispay_Logger');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Encoder.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Logger.php');
 
         /** Get order info */
         $order_id = $this->session->data['order_id'];
@@ -114,7 +114,7 @@ class ControllerExtensionPaymentTwispay extends Controller
 
         if ($order_info) {
             /** Extract the customer details. */
-            $customer = [ 'identifier' => (0 == $order_info['customer_id']) ? ('_' . $order_id . '_' . date('YmdHis')) : ('_' . $order_info['customer_id'] . '_' . date('YmdHis'))
+            $customer = [ 'identifier' => (0 == $order_info['customer_id']) ? ('_ORD' . $order_id . '_' . date('YmdHis')) : ('_' . $order_info['customer_id'] . '_' . date('YmdHis'))
                         , 'firstName' => ($order_info['payment_firstname']) ? ($order_info['payment_firstname']) : ($order_info['shipping_firstname'])
                         , 'lastName' => ($order_info['payment_lastname']) ? ($order_info['payment_lastname']) : ($order_info['shipping_lastname'])
                         , 'country' => ($order_info['payment_iso_code_2']) ? ($order_info['payment_iso_code_2']) : ($order_info['shipping_iso_code_2'])
@@ -124,7 +124,6 @@ class ControllerExtensionPaymentTwispay extends Controller
                         , 'phone' => ((strlen($order_info['telephone']) && $order_info['telephone'][0] == '+') ? ('+') : ('')) . preg_replace('/([^0-9]*)+/', '', $order_info['telephone'])
                         , 'email' => $order_info['email']
                         ];
-
             /** Calculate the backUrl through which the server will provide the status of the order. */
             $backUrl = $this->url->link('extension/payment/twispay/callback');
 
@@ -284,10 +283,10 @@ class ControllerExtensionPaymentTwispay extends Controller
         $this->language->load('extension/payment/twispay');
         $this->load->model('checkout/order');
         $this->load->model('extension/payment/twispay_transaction');
-        $this->load->helper('Twispay_Response');
-        $this->load->helper('Twispay_Logger');
-        $this->load->helper('Twispay_Notification');
-        $this->load->helper('Twispay_Status_Updater');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Response.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Logger.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Notification.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Status_Updater.php');
 
         /** Get the Site ID and the Private Key. */
         if (!empty($this->config->get('payment_twispay_testMode'))) {
@@ -377,9 +376,9 @@ class ControllerExtensionPaymentTwispay extends Controller
         $this->language->load('extension/payment/twispay');
         $this->load->model('checkout/order');
         $this->load->model('extension/payment/twispay_transaction');
-        $this->load->helper('Twispay_Response');
-        $this->load->helper('Twispay_Logger');
-        $this->load->helper('Twispay_Status_Updater');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Response.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Logger.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Status_Updater.php');
 
         /** Get the Site ID and the Private Key. */
         if (!empty($this->config->get('payment_twispay_testMode'))) {
