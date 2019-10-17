@@ -167,25 +167,25 @@ class ControllerExtensionPaymentTwispay extends Controller
                     $firstBillDate = $today;
                     switch ($trialFreq) {
                         case 'day':
-                            $firstBillDate= date("Y-m-d", strtotime("$today +$totalTrialPeriod day"));
+                            $firstBillDate= date("Y-m-d", strtotime("$today + $totalTrialPeriod day"));
                             break;
                         case 'week':
-                            $firstBillDate= date("Y-m-d", strtotime("$today +$totalTrialPeriod week"));
+                            $firstBillDate= date("Y-m-d", strtotime("$today + $totalTrialPeriod week"));
                             break;
                         case 'semi_month':
                             $totalTrialPeriod *= 2;
-                            $firstBillDate= date("Y-m-d", strtotime("$today +$totalTrialPeriod week"));
+                            $firstBillDate= date("Y-m-d", strtotime("$today + $totalTrialPeriod week"));
                             break;
                         case 'month':
-                            $firstBillDate= date("Y-m-d", strtotime("$today +$totalTrialPeriod month"));
+                            $firstBillDate= date("Y-m-d", strtotime("$today + $totalTrialPeriod month"));
                             break;
                         case 'year':
-                            $firstBillDate= date("Y-m-d", strtotime("$today +$totalTrialPeriod year"));
+                            $firstBillDate= date("Y-m-d", strtotime("$today + $totalTrialPeriod year"));
                             break;
                         default:
                             break;
                     }
-
+                    $firstBillDate .="T".date("H:i:s");
                     /** Calculate the subscription's interval type and value. */
                     $numberOfPayments = $subscription["duration"]; /** how long */
                     $intervalFreq = $subscription["frequency"]; /** unit of measurement for duration */
