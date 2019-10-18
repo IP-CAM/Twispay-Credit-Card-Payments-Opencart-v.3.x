@@ -167,25 +167,25 @@ class ControllerExtensionPaymentTwispay extends Controller
                     $firstBillDate = $today;
                     switch ($trialFreq) {
                         case 'day':
-                            $firstBillDate= date("Y-m-d", strtotime("$today +$totalTrialPeriod day"));
+                            $firstBillDate= date("Y-m-d", strtotime("$today + $totalTrialPeriod day"));
                             break;
                         case 'week':
-                            $firstBillDate= date("Y-m-d", strtotime("$today +$totalTrialPeriod week"));
+                            $firstBillDate= date("Y-m-d", strtotime("$today + $totalTrialPeriod week"));
                             break;
                         case 'semi_month':
                             $totalTrialPeriod *= 2;
-                            $firstBillDate= date("Y-m-d", strtotime("$today +$totalTrialPeriod week"));
+                            $firstBillDate= date("Y-m-d", strtotime("$today + $totalTrialPeriod week"));
                             break;
                         case 'month':
-                            $firstBillDate= date("Y-m-d", strtotime("$today +$totalTrialPeriod month"));
+                            $firstBillDate= date("Y-m-d", strtotime("$today + $totalTrialPeriod month"));
                             break;
                         case 'year':
-                            $firstBillDate= date("Y-m-d", strtotime("$today +$totalTrialPeriod year"));
+                            $firstBillDate= date("Y-m-d", strtotime("$today + $totalTrialPeriod year"));
                             break;
                         default:
                             break;
                     }
-
+                    $firstBillDate .="T".date("H:i:s");
                     /** Calculate the subscription's interval type and value. */
                     $numberOfPayments = $subscription["duration"]; /** how long */
                     $intervalFreq = $subscription["frequency"]; /** unit of measurement for duration */
@@ -287,6 +287,7 @@ class ControllerExtensionPaymentTwispay extends Controller
         require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Logger.php');
         require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Notification.php');
         require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Status_Updater.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Thankyou.php');
 
         /** Get the Site ID and the Private Key. */
         if (!empty($this->config->get('payment_twispay_testMode'))) {
@@ -347,13 +348,16 @@ class ControllerExtensionPaymentTwispay extends Controller
             /** Check if transaction already exist */
             if ($this->model_extension_payment_twispay_transaction->checkTransaction($decrypted['transactionId'], $this)) {
                 Twispay_Logger::Twispay_log($this->language->get('log_error_transaction_exist') . $decrypted['transactionId']);
-                Twispay_Notification::notice_to_checkout($this);
-                die($this->language->get('log_error_transaction_exist') . $decrypted['transactionId']);
+                /* Redirect to Twispay "Thank you Page" if it is set, if not, redirect to default "Thank you Page" */
+                if ($this->config->get('twispay_redirect_page') != NULL && strlen($this->config->get('twispay_redirect_page'))) {
+                    Twispay_Thankyou::custom_page($this->config->get('twispay_redirect_page'));
+                } else {
+                    Twispay_Thankyou::default_page();
+                }
             }
 
             /** Extract the status received from server. */
             $decrypted['status'] = (empty($decrypted['status'])) ? ($decrypted['transactionStatus']) : ($decrypted['status']);
-
             Twispay_Status_Updater::updateStatus_backUrl($orderId, $decrypted, $this);
         } else {
             Twispay_Logger::Twispay_log($this->language->get('no_post'));
