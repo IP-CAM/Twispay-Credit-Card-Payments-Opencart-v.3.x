@@ -16,7 +16,7 @@ Install
 2. Use the Opencart 3 Extension Installer and upload the OCmod ar
 
 ### Manually
-1. Download the Twispay payment module from our Github [Github][github] repository
+1. Download the Twispay payment module from our [Github repository][github] 
 
 2. Unzip the archive files and upload the content of folder "uploads" in the corresponding files on the server.
 
