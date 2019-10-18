@@ -5,7 +5,7 @@
  * Redirects user to the thank you page.
  *
  * @author   Twistpay
- * @version  1.0.1
+ * @version  1.0.2
  */
 
 /* Security class check */
