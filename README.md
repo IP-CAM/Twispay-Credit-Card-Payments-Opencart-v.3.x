@@ -12,34 +12,30 @@ Install
 
 ### Automatic
 1. Download the Twispay payment module from Opencart Marketplace, where you can find [The Official Twispay Payment Gateway Extension][marketplace]
-
 2. Use the Opencart 3 Extension Installer and upload the OCmod ar
+3. Sign in to your OpenCart admin.
+4. Click **Extensions** tab and **Payments subtab**.
+5. Under **Twispay** click **Install** and then click **Edit**.
+6. Select **Enabled** under **Status**.
+7. Select **No** under **Test Mode**. _(Unless you are tesing)_
+8. Enter your **Account ID**. _(Twispay Staging Account ID)_
+9. Enter your **Secret Key**. _(Twispay Secret Key)_
+10. Enter your tehnical **Contact Email**. _(This will be displayed to customers in case of a payment error)_
+11. Enter the **Sort Order**. _(The order that the payment option will appear on the checkout payment tab in accordance with the other payment methods )_
+12. Save your changes.
 
 ### Manually
 1. Download the Twispay payment module from our [Github repository][github]
-
 2. Unzip the archive files and upload the content of folder "uploads" in the corresponding files on the server.
-
-### ========
-
 3. Sign in to your OpenCart admin.
-
 4. Click **Extensions** tab and **Payments subtab**.
-
 5. Under **Twispay** click **Install** and then click **Edit**.
-
 6. Select **Enabled** under **Status**.
-
 7. Select **No** under **Test Mode**. _(Unless you are tesing)_
-
 8. Enter your **Account ID**. _(Twispay Staging Account ID)_
-
 9. Enter your **Secret Key**. _(Twispay Secret Key)_
-
 10. Enter your tehnical **Contact Email**. _(This will be displayed to customers in case of a payment error)_
-
 11. Enter the **Sort Order**. _(The order that the payment option will appear on the checkout payment tab in accordance with the other payment methods )_
-
 12. Save your changes.
 
 Changelog
