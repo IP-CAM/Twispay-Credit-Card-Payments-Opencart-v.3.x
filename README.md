@@ -11,12 +11,12 @@ Install
 =======
 
 ### Automatic
-1. Download the Twispay payment module from Opencart Marketplace, where you can find [The Official Twispay Payment Gateway Extension][marketplace]
+1. Download the Twispay payment module from Opencart Marketplace, where you can find [The Official Twispay Payment Gateway Extension][marketplace].
 
-2. Use the Opencart 3 Extension Installer and upload the OCmod ar
+2. Use the Opencart 3 Extension Installer and upload the OCmod archive.
 
 ### Manually
-1. Download the Twispay payment module from our [Github repository][github]
+1. Download the Twispay payment module from our [Github repository][github].
 
 2. Unzip the archive files and upload the content of folder "uploads" in the corresponding files on the server.
 
@@ -30,7 +30,7 @@ Install
 
 6. Select **Enabled** under **Status**.
 
-7. Select **No** under **Test Mode**. _(Unless you are tesing)_
+7. Select **No** under **Test Mode**. _(Unless you are testing)_
 
 8. Enter your **Account ID**. _(Twispay Staging Account ID)_
 
@@ -46,14 +46,14 @@ Changelog
 =========
 
 = 1.0.2 =
-* Bug fix - redirect to success in case of the IPN response comes before BACKURL response
-* Bug fix - added time reference to first billing date of recurring orders with trial enabled
+* Bug fix - redirect to success in case of the IPN response comes before BACKURL response.
+* Bug fix - added time reference to first billing date of recurring orders with trial enabled.
 
 = 1.0.1 =
 * Updated the way requests are sent to the Twispay server.
 * Updated the server response handling to process all the possible server response statuses.
 * Added support for refunds.
-* Added sort by status an filtering for transactions table.
+* Added filter by status an sorting support for transactions table.
 * Added support for recurring orders.
 
 = 1.0.0 =
@@ -66,4 +66,4 @@ A functional description of the extension can be found on the [wiki page][doc] -
 
 [twispay]: http://twispay.com/
 [marketplace]: https://www.opencart.com/index.php?route=marketplace/extension/info&extension_id=31761&filter_member=twispay
-[github]: https://github.com/MichaelRotaru/OpenCart3.0
+[github]: https://github.com/Twispay/OpenCart3.0
