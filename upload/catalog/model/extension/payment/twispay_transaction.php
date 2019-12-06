@@ -56,7 +56,7 @@ class ModelExtensionPaymentTwispayTransaction extends Model
         }
 
         if (!empty($data['identifier'])) {
-            $data['identifier'] = explode("_", $data['identifier'])[1];
+            $data['identifier'] = explode("_", $data['identifier'])[2];
         }
 
         /** Construct the query based on $data object fields filtered by $colums keys */
