@@ -439,7 +439,7 @@ class ControllerExtensionPaymentTwispay extends Controller
             /** Check if transaction already exist */
             if ($this->model_extension_payment_twispay_transaction->checkTransaction($decrypted['transactionId'], $this)) {
                 Twispay_Logger::Twispay_log($this->language->get('log_error_transaction_exist') . $decrypted['transactionId']);
-                die($this->language->get('log_error_transaction_exist') . $decrypted['transactionId']);
+                die("OK");
             }
 
             /** Extract the status received from server. */
