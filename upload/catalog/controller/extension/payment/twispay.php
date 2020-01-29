@@ -112,10 +112,11 @@ class ControllerExtensionPaymentTwispay extends Controller
             $this->secretKey = $this->config->get('payment_twispay_live_site_key');
         }
 
+
         if ($order_info) {
             /** Extract the customer details. */
-            $customer = [ 'identifier' => (0 == $order_info['customer_id']) ? ('_ORD' . $order_id . '_' . date('YmdHis')) : ('_' . $order_info['customer_id'] . '_' . date('YmdHis'))
-                        , 'firstName' => ($order_info['payment_firstname']) ? ($order_info['payment_firstname']) : ($order_info['shipping_firstname'])
+            $customerIdentifierPrefix = 'p';
+            $customer = [ 'firstName' => ($order_info['payment_firstname']) ? ($order_info['payment_firstname']) : ($order_info['shipping_firstname'])
                         , 'lastName' => ($order_info['payment_lastname']) ? ($order_info['payment_lastname']) : ($order_info['shipping_lastname'])
                         , 'country' => ($order_info['payment_iso_code_2']) ? ($order_info['payment_iso_code_2']) : ($order_info['shipping_iso_code_2'])
                         , 'city' => ($order_info['payment_city']) ? ($order_info['payment_city']) : ($order_info['shipping_city'])
@@ -129,7 +130,6 @@ class ControllerExtensionPaymentTwispay extends Controller
 
             /** Build the data object to be posted to Twispay. */
             $orderData = [ 'siteId' => $this->siteID
-                         , 'customer' => $customer
                          , 'order' => [ 'orderId' => $order_id
                                       , 'type' => 'purchase'
                                       , 'amount' =>  $this->currency->format($order_info['total'], $order_info['currency_code'], false, false)
@@ -152,6 +152,7 @@ class ControllerExtensionPaymentTwispay extends Controller
                 $this->load->model('checkout/recurring');
                 $this->load->model('checkout/order');
                 if (sizeof($cart_products) == 1) {
+                    $customerIdentifierPrefix = 'r';
                     $first_product = $cart_products[0];
                     $subscription = $first_product['recurring'];
 
@@ -249,6 +250,9 @@ class ControllerExtensionPaymentTwispay extends Controller
                 }
                 $orderData['order']['items'] = $items;
             }
+            $customer['identifier'] = (0 == $order_info['customer_id']) ? ('_ORD' . $order_id . '_' . date('YmdHis')) : ('_' . $order_info['customer_id'] . '_' . date('YmdHis'));
+            $customer['identifier'] = $customerIdentifierPrefix.'_o3'.$customer['identifier'];
+            $orderData['customer'] = $customer;
 
             $base64JsonRequest = Twispay_Encoder::getBase64JsonRequest($orderData);
             $base64Checksum = Twispay_Encoder::getBase64Checksum($orderData, $this->secretKey);
@@ -435,7 +439,7 @@ class ControllerExtensionPaymentTwispay extends Controller
             /** Check if transaction already exist */
             if ($this->model_extension_payment_twispay_transaction->checkTransaction($decrypted['transactionId'], $this)) {
                 Twispay_Logger::Twispay_log($this->language->get('log_error_transaction_exist') . $decrypted['transactionId']);
-                die($this->language->get('log_error_transaction_exist') . $decrypted['transactionId']);
+                die("OK");
             }
 
             /** Extract the status received from server. */
