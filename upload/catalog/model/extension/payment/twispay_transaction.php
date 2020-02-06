@@ -1,7 +1,7 @@
 <?php
 /**
  * @author   Twistpay
- * @version  1.0.1
+ * @version  1.0.2
  */
 
 /**
@@ -19,7 +19,7 @@ class ModelExtensionPaymentTwispayTransaction extends Model
      */
     public function insertTransaction($data)
     {
-        $this->load->helper('Twispay_Status_Updater');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Status_Updater.php');
 
         /** Define filtred keys */
         $columns = array(
@@ -56,7 +56,7 @@ class ModelExtensionPaymentTwispayTransaction extends Model
         }
 
         if (!empty($data['identifier'])) {
-            $data['identifier'] = (int)str_replace('_', '', $data['identifier']);
+            $data['identifier'] = explode("_", $data['identifier'])[2];
         }
 
         /** Construct the query based on $data object fields filtered by $colums keys */
@@ -85,7 +85,7 @@ class ModelExtensionPaymentTwispayTransaction extends Model
      */
     public function updateTransactionStatus($id, $status)
     {
-        $this->load->helper('Twispay_Status_Updater');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Status_Updater.php');
         $db_trans_id = $this->db->escape($id);
         $db_status = $this->db->escape($status);
         if ($db_status == Twispay_Status_Updater::$RESULT_STATUSES['REFUND_OK']) {
@@ -158,8 +158,8 @@ class ModelExtensionPaymentTwispayTransaction extends Model
      */
     public function refund($trans_id, $order_id)
     {
-        $this->load->helper('Twispay_Logger');
-        $this->load->helper('Twispay_Status_Updater');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Logger.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Status_Updater.php');
         $this->load->model('extension/payment/twispay_recurring');
 
         $order_recurring = $this->model_extension_payment_twispay_recurring->getRecurringByOrderId($order_id);

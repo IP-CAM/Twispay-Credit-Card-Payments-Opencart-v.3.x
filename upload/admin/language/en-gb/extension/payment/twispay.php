@@ -5,7 +5,7 @@
  * Twispay general language handler for admin pannel
  *
  * @author   Twistpay
- * @version  1.0.1
+ * @version  1.0.2
  */
 
 $_['heading_title']           = 'Twispay Payment Method Configuration';

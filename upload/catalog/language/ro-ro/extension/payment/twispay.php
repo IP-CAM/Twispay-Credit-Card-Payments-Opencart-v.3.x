@@ -5,7 +5,7 @@
  * Twispay general language handler for front-store
  *
  * @author   Twistpay
- * @version  1.0.1
+ * @version  1.0.2
  */
 
 /* General */
@@ -60,7 +60,7 @@ $_['log_ok_status_charged_back']                = '[RESPONSE]: Status charged ba
 $_['log_ok_status_hold']                        = '[RESPONSE]: Status on-hold pentru comanda cu ID-ul: ';
 $_['log_ok_validating_complete']                = '[RESPONSE]: Validare cu succes pentru comanda cu ID-ul: %s';
 
-$_['log_error_validating_failed']               = '[RESPONSE-ERROR]: Validare esuată pentru comanda cu ID-ul: ';
+$_['log_error_validating_failed']               = '[RESPONSE-ERROR]: Validare eșuată pentru comanda cu ID-ul: ';
 $_['log_error_decryption_error']                = '[RESPONSE-ERROR]: Decriptarea nu a funcționat.';
 $_['log_error_invalid_order']                   = '[RESPONSE-ERROR]: Comanda nu există.';
 $_['log_error_wrong_status']                    = '[RESPONSE-ERROR]: Status greșit: ';

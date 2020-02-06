@@ -1,7 +1,7 @@
 <?php
 /**
  * @author   Twistpay
- * @version  1.0.1
+ * @version  1.0.2
  */
 
 class ControllerExtensionPaymentTwispay extends Controller
@@ -94,8 +94,8 @@ class ControllerExtensionPaymentTwispay extends Controller
         /** Load dependecies */
         $this->language->load('extension/payment/twispay');
         $this->load->model('checkout/order');
-        $this->load->helper('Twispay_Encoder');
-        $this->load->helper('Twispay_Logger');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Encoder.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Logger.php');
 
         /** Get order info */
         $order_id = $this->session->data['order_id'];
@@ -112,10 +112,11 @@ class ControllerExtensionPaymentTwispay extends Controller
             $this->secretKey = $this->config->get('payment_twispay_live_site_key');
         }
 
+
         if ($order_info) {
             /** Extract the customer details. */
-            $customer = [ 'identifier' => (0 == $order_info['customer_id']) ? ('_' . $order_id . '_' . date('YmdHis')) : ('_' . $order_info['customer_id'] . '_' . date('YmdHis'))
-                        , 'firstName' => ($order_info['payment_firstname']) ? ($order_info['payment_firstname']) : ($order_info['shipping_firstname'])
+            $customerIdentifierPrefix = 'p';
+            $customer = [ 'firstName' => ($order_info['payment_firstname']) ? ($order_info['payment_firstname']) : ($order_info['shipping_firstname'])
                         , 'lastName' => ($order_info['payment_lastname']) ? ($order_info['payment_lastname']) : ($order_info['shipping_lastname'])
                         , 'country' => ($order_info['payment_iso_code_2']) ? ($order_info['payment_iso_code_2']) : ($order_info['shipping_iso_code_2'])
                         , 'city' => ($order_info['payment_city']) ? ($order_info['payment_city']) : ($order_info['shipping_city'])
@@ -124,13 +125,11 @@ class ControllerExtensionPaymentTwispay extends Controller
                         , 'phone' => ((strlen($order_info['telephone']) && $order_info['telephone'][0] == '+') ? ('+') : ('')) . preg_replace('/([^0-9]*)+/', '', $order_info['telephone'])
                         , 'email' => $order_info['email']
                         ];
-
             /** Calculate the backUrl through which the server will provide the status of the order. */
             $backUrl = $this->url->link('extension/payment/twispay/callback');
 
             /** Build the data object to be posted to Twispay. */
             $orderData = [ 'siteId' => $this->siteID
-                         , 'customer' => $customer
                          , 'order' => [ 'orderId' => $order_id
                                       , 'type' => 'purchase'
                                       , 'amount' =>  $this->currency->format($order_info['total'], $order_info['currency_code'], false, false)
@@ -153,6 +152,7 @@ class ControllerExtensionPaymentTwispay extends Controller
                 $this->load->model('checkout/recurring');
                 $this->load->model('checkout/order');
                 if (sizeof($cart_products) == 1) {
+                    $customerIdentifierPrefix = 'r';
                     $first_product = $cart_products[0];
                     $subscription = $first_product['recurring'];
 
@@ -168,25 +168,25 @@ class ControllerExtensionPaymentTwispay extends Controller
                     $firstBillDate = $today;
                     switch ($trialFreq) {
                         case 'day':
-                            $firstBillDate= date("Y-m-d", strtotime("$today +$totalTrialPeriod day"));
+                            $firstBillDate= date("Y-m-d", strtotime("$today + $totalTrialPeriod day"));
                             break;
                         case 'week':
-                            $firstBillDate= date("Y-m-d", strtotime("$today +$totalTrialPeriod week"));
+                            $firstBillDate= date("Y-m-d", strtotime("$today + $totalTrialPeriod week"));
                             break;
                         case 'semi_month':
                             $totalTrialPeriod *= 2;
-                            $firstBillDate= date("Y-m-d", strtotime("$today +$totalTrialPeriod week"));
+                            $firstBillDate= date("Y-m-d", strtotime("$today + $totalTrialPeriod week"));
                             break;
                         case 'month':
-                            $firstBillDate= date("Y-m-d", strtotime("$today +$totalTrialPeriod month"));
+                            $firstBillDate= date("Y-m-d", strtotime("$today + $totalTrialPeriod month"));
                             break;
                         case 'year':
-                            $firstBillDate= date("Y-m-d", strtotime("$today +$totalTrialPeriod year"));
+                            $firstBillDate= date("Y-m-d", strtotime("$today + $totalTrialPeriod year"));
                             break;
                         default:
                             break;
                     }
-
+                    $firstBillDate .="T".date("H:i:s");
                     /** Calculate the subscription's interval type and value. */
                     $numberOfPayments = $subscription["duration"]; /** how long */
                     $intervalFreq = $subscription["frequency"]; /** unit of measurement for duration */
@@ -250,6 +250,9 @@ class ControllerExtensionPaymentTwispay extends Controller
                 }
                 $orderData['order']['items'] = $items;
             }
+            $customer['identifier'] = (0 == $order_info['customer_id']) ? ('_ORD' . $order_id . '_' . date('YmdHis')) : ('_' . $order_info['customer_id'] . '_' . date('YmdHis'));
+            $customer['identifier'] = $customerIdentifierPrefix.'_o3'.$customer['identifier'];
+            $orderData['customer'] = $customer;
 
             $base64JsonRequest = Twispay_Encoder::getBase64JsonRequest($orderData);
             $base64Checksum = Twispay_Encoder::getBase64Checksum($orderData, $this->secretKey);
@@ -284,10 +287,11 @@ class ControllerExtensionPaymentTwispay extends Controller
         $this->language->load('extension/payment/twispay');
         $this->load->model('checkout/order');
         $this->load->model('extension/payment/twispay_transaction');
-        $this->load->helper('Twispay_Response');
-        $this->load->helper('Twispay_Logger');
-        $this->load->helper('Twispay_Notification');
-        $this->load->helper('Twispay_Status_Updater');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Response.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Logger.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Notification.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Status_Updater.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Thankyou.php');
 
         /** Get the Site ID and the Private Key. */
         if (!empty($this->config->get('payment_twispay_testMode'))) {
@@ -348,13 +352,16 @@ class ControllerExtensionPaymentTwispay extends Controller
             /** Check if transaction already exist */
             if ($this->model_extension_payment_twispay_transaction->checkTransaction($decrypted['transactionId'], $this)) {
                 Twispay_Logger::Twispay_log($this->language->get('log_error_transaction_exist') . $decrypted['transactionId']);
-                Twispay_Notification::notice_to_checkout($this);
-                die($this->language->get('log_error_transaction_exist') . $decrypted['transactionId']);
+                /* Redirect to Twispay "Thank you Page" if it is set, if not, redirect to default "Thank you Page" */
+                if ($this->config->get('twispay_redirect_page') != NULL && strlen($this->config->get('twispay_redirect_page'))) {
+                    Twispay_Thankyou::custom_page($this->config->get('twispay_redirect_page'));
+                } else {
+                    Twispay_Thankyou::default_page();
+                }
             }
 
             /** Extract the status received from server. */
             $decrypted['status'] = (empty($decrypted['status'])) ? ($decrypted['transactionStatus']) : ($decrypted['status']);
-
             Twispay_Status_Updater::updateStatus_backUrl($orderId, $decrypted, $this);
         } else {
             Twispay_Logger::Twispay_log($this->language->get('no_post'));
@@ -377,9 +384,9 @@ class ControllerExtensionPaymentTwispay extends Controller
         $this->language->load('extension/payment/twispay');
         $this->load->model('checkout/order');
         $this->load->model('extension/payment/twispay_transaction');
-        $this->load->helper('Twispay_Response');
-        $this->load->helper('Twispay_Logger');
-        $this->load->helper('Twispay_Status_Updater');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Response.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Logger.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Status_Updater.php');
 
         /** Get the Site ID and the Private Key. */
         if (!empty($this->config->get('payment_twispay_testMode'))) {
@@ -432,7 +439,7 @@ class ControllerExtensionPaymentTwispay extends Controller
             /** Check if transaction already exist */
             if ($this->model_extension_payment_twispay_transaction->checkTransaction($decrypted['transactionId'], $this)) {
                 Twispay_Logger::Twispay_log($this->language->get('log_error_transaction_exist') . $decrypted['transactionId']);
-                die($this->language->get('log_error_transaction_exist') . $decrypted['transactionId']);
+                die("OK");
             }
 
             /** Extract the status received from server. */

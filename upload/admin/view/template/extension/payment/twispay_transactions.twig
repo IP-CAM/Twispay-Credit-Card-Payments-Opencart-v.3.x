@@ -1,3 +1,8 @@
+ <!--  
+ * @author   Twistpay
+ * @version  1.0.2
+-->
+
 {{ header }}{{ column_left }}
 <div id="content">
     <div class="page-header">
@@ -177,10 +182,10 @@
     var transid = $(this).attr('data-transid');
     var orderid = $(this).attr('data-orderid');
     var parent = $(this).parents('tr');
-    var token = "{{ token }}";
+
     $(parent).css('opacity', '0.5');
     /** Endpoint URL + GET parameters */
-    var refund ='{{ catalog }}index.php?route=api/twispay/refund&api_token={{ api_token }}&trans_id=' + transid + '&order_id=' + orderid;
+    var refund ='{{ catalog }}index.php?route=extension/payment/twispay/api/refund&api_token={{ api_token }}&trans_id=' + transid + '&order_id=' + orderid;
     setTimeout(function() {
       /** user confirmation popup */
       if (window.confirm("Are you sure you want to refund transaction #" + transid + " ?\nProcess is not reversible !!!")) {
@@ -217,10 +222,9 @@
     var orderid = $(this).attr('data-orderid');
     var tworderid = $(this).attr('data-tworderid');
     var parent = $(this).parents('tr');
-    var token = "{{ token }}";
     $(parent).css('opacity', '0.5');
     /** Endpoint URL + GET parameters */
-    var cancel ='{{ catalog }}index.php?route=api/twispay/cancel&api_token={{ api_token }}&tw_order_id=' + tworderid + '&order_id=' + orderid;
+    var cancel ='{{ catalog }}index.php?route=extension/payment/twispay/api/cancel&api_token={{ api_token }}&tw_order_id=' + tworderid + '&order_id=' + orderid;
     setTimeout(function() {
       /** user confirmation popup */
       if (window.confirm("Are you sure you want to cancel order #" + orderid + " ?\n")) {
@@ -254,7 +258,7 @@
   /** Click listener for sync all button */
   $(document).on('click', '.sync_subscriptions', function() {
     /** Endpoint URL */
-    var sync ='{{ catalog }}index.php?route=api/twispay/sync&api_token={{ api_token }}';
+    var sync ='{{ catalog }}index.php?route=extension/payment/twispay/api/sync&api_token={{ api_token }}';
     /** Preload the button */
     buttonLoadingState($('.sync_subscriptions'));
     setTimeout(function() {

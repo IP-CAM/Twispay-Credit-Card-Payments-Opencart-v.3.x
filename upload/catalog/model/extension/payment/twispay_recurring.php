@@ -1,7 +1,7 @@
 <?php
 /**
  * @author   Twistpay
- * @version  1.0.1
+ * @version  1.0.2
  */
 
 /**
@@ -280,8 +280,8 @@ class ModelExtensionPaymentTwispayRecurring extends Model
      */
     public function cancelRecurring($tw_order_id, $order_id, $type = 'Manual')
     {
-        $this->load->helper('Twispay_Logger');
-        $this->load->helper('Twispay_Status_Updater');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Logger.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Status_Updater.php');
         $postData = 'reason='.'customer-demand'.'&'.'message=' . $type .'cancel';
 
         if (!empty($this->config->get('payment_twispay_testMode'))) {
@@ -344,8 +344,8 @@ class ModelExtensionPaymentTwispayRecurring extends Model
     {
         /** Load dependencies */
         $this->language->load('extension/payment/twispay');
-        $this->load->helper('Twispay_Logger');
-        $this->load->helper('Twispay_Status_Updater');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Logger.php');
+        require_once(DIR_APPLICATION.'controller/extension/payment/twispay/helpers/Twispay_Status_Updater.php');
 
         if (!empty($this->config->get('payment_twispay_testMode'))) {
             $baseUrl = 'https://api-stage.twispay.com/order?externalOrderId=__EXTERNAL_ORDER_ID__&orderType=recurring&page=1&perPage=1&reverseSorting=0';
