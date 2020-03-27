@@ -13,7 +13,7 @@ Credit Card Payments by Twispay is the official [payment module for OpenCart](ht
 
 [Twispay](https://www.twispay.com) is a European certified acquiring bank with a sleek payment gateway optimized for online shops. We process payments from worldwide customers using Mastercard or Visa debit and credit cards. Increase your purchases by using our conversion rate optimized checkout flow and manage your transactions with our dashboard created specifically for online merchants like you.
 
-Twispay provides merchants with a lean way of accessing a complete portfolio of online payment services at the most competitive rates. For more details concerning our pricing in your area, please check out our [pricing page](https://www.twispay.com/prices). To use our payment module and start processing you will need a [Twispay merchant account](https://merchant-stage.twispay.com/register). For any assistance during the on-boarding process, our [sales and compliance](https://www.twispay.com/contact) team are happy to assist you with any enquiries you may have.
+Twispay provides merchants with a lean way of accessing a complete portfolio of online payment services at the most competitive rates. For more details concerning our pricing in your area, please check out our [pricing page](https://www.twispay.com/pricing). To use our payment module and start processing you will need a [Twispay merchant account](https://merchant-stage.twispay.com/auth/signup). For any assistance during the on-boarding process, our [sales and compliance](https://www.twispay.com/contact) team are happy to assist you with any enquiries you may have.
 
 We take pride in offering world class, free customer support to all our merchants during the integration phase, and at any time thereafter. Our [support team](https://www.twispay.com/contact) is available non-stop during regular business hours EET.
 
@@ -48,9 +48,9 @@ Install
 
 7. Select **No** under **Test Mode**. _(Unless you are testing)_
 
-8. Enter your **Account ID**. _(Twispay Staging Account ID)_ https://merchant-stage.twispay.com/login
+8. Enter your **Account ID**. _(Twispay Staging Account ID)_ https://merchant-stage.twispay.com/auth/signin
 
-9. Enter your **Secret Key**. _(Twispay Secret Key)_ https://merchant-stage.twispay.com/login
+9. Enter your **Secret Key**. _(Twispay Secret Key)_ https://merchant-stage.twispay.com/auth/signin
 
 10. Enter your tehnical **Contact Email**. _(This will be displayed to customers in case of a payment error)_
 
