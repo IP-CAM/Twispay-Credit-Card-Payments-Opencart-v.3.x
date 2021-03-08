@@ -62,7 +62,10 @@ class ModelExtensionPaymentTwispayTransaction extends Model
         /** Construct the query based on $data object fields filtered by $colums keys */
         $query = "INSERT INTO `" . DB_PREFIX . "twispay_transactions` SET ";
         foreach ($data as $key => $value) {
-            if (in_array($key, $columns)) {
+            if (in_array($key, $columns) || $key == 'transactionMethod') {
+                if ($key == 'transactionMethod') {
+                    $key = 'transactionKind';
+                }
                 $query .= $key."="."'" . $this->db->escape($value) . "',";
             }
         }

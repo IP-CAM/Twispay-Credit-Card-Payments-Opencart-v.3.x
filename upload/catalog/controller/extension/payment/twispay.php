@@ -361,7 +361,7 @@ class ControllerExtensionPaymentTwispay extends Controller
             }
 
             /** Extract the status received from server. */
-            $decrypted['status'] = (empty($decrypted['status'])) ? ($decrypted['transactionStatus']) : ($decrypted['status']);
+            $decrypted['status'] = $decrypted['transactionStatus'];
             Twispay_Status_Updater::updateStatus_backUrl($orderId, $decrypted, $this);
         } else {
             Twispay_Logger::Twispay_log($this->language->get('no_post'));
@@ -443,7 +443,7 @@ class ControllerExtensionPaymentTwispay extends Controller
             }
 
             /** Extract the status received from server. */
-            $decrypted['status'] = (empty($decrypted['status'])) ? ($decrypted['transactionStatus']) : ($decrypted['status']);
+            $decrypted['status'] = $decrypted['transactionStatus'];
 
             Twispay_Status_Updater::updateStatus_IPN($orderId, $decrypted, $this);
             die('OK');

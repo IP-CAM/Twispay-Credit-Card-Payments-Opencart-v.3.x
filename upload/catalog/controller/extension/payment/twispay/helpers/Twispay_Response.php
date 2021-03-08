@@ -74,7 +74,7 @@ if (! class_exists('Twispay_Response')) :
                 return FALSE;
             }
 
-            if (empty($tw_response['status']) && empty($tw_response['transactionStatus'])) {
+            if (empty($tw_response['transactionStatus'])) {
                 $tw_errors[] = $that->language->get('log_error_empty_status');
             }
 
@@ -98,7 +98,7 @@ if (! class_exists('Twispay_Response')) :
                 return FALSE;
             } else {
                 $data = [ 'id_cart'          => explode('_', $tw_response['externalOrderId'])[0]
-                        , 'status'           => (empty($tw_response['status'])) ? ($tw_response['transactionStatus']) : ($tw_response['status'])
+                        , 'status'           => $tw_response['transactionStatus']
                         , 'identifier'       => $tw_response['identifier']
                         , 'orderId'          => (int)$tw_response['orderId']
                         , 'transactionId'    => (int)$tw_response['transactionId']
