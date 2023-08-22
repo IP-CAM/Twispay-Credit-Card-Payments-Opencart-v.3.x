@@ -2,7 +2,7 @@
 Contributors: twispay
 Tags: payment, gateway, module
 Requires at least: OpenCart 3.0.0.0
-Tested up to: OpenCart 3.0.3.2
+Tested up to: OpenCart 4.0.2.0
 
 Twispay enables new and existing store owners to quickly and effortlessly accept online credit card payments over their OpenCart 3 shop
 
